@@ -12,26 +12,192 @@ datasource db {
   provider = "postgresql"
 }
 
+// --- Enums ---
+
+enum ContentType {
+  FREE
+  PREMIUM
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum MediaType {
+  MOVIE
+  SERIES
+}
+
+enum PurchaseType {
+  BUY
+  RENT
+}
+
 model User {
-  id            String    @id
+  id            String      @id @default(uuid())
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean     @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  role          String?
-  status        String
-  phone         String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  role          Role        @default(USER)
+  status        String?
+  phone         String?
+  isPremium     Boolean     @default(false)
   sessions      Session[]
   accounts      Account[]
+  // App specific relations
+  purchases     Purchase[]
+  reviews       Review[]
+  watchlists    Watchlist[]
+  payments      Payment[]
+  likes         Like[]
 
   @@unique([email])
   @@map("user")
 }
 
+model Purchase {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  movieId String
+  movie   Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  type   PurchaseType @default(BUY) // BUY অথবা RENT
+  amount Float
+
+  // রেন্টালের জন্য এক্সেস পিরিয়ড
+  startsAt  DateTime  @default(now())
+  expiresAt DateTime? // মুভি কিনলে এটি null হবে, রেন্ট করলে ডেট থাকবে
+
+  createdAt DateTime @default(now())
+
+  @@map("purchase")
+}
+
+// --- Movie Portal Specific Models ---
+
+model Movie {
+  id            String      @id @default(uuid())
+  title         String
+  type          MediaType   @default(MOVIE) // MOVIE অথবা SERIES
+  synopsis      String      @db.Text
+  posterUrl     String?
+  genre         String[]
+  releaseYear   Int
+  director      String
+  cast          String[]
+  streamingLink String?
+  contentType   ContentType @default(FREE)
+  ratingAverage Float       @default(0.0)
+  buyPrice      Float?      @default(0)
+  rentPrice     Float?      @default(0)
+  rentDuration  Int?        @default(48) // কত ঘণ্টার জন্য রেন্ট (যেমন: ৪৮ ঘণ্টা)
+  // রিলেশনশিপস
+  reviews       Review[]
+  watchlists    Watchlist[]
+  // ক্যাটাগরি বা কালেকশনের জন্য (যেমন: Trending, Oscars Winner)
+  categories    Category[]  @relation("MovieCategories")
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  purchases Purchase[]
+
+  @@map("movie")
+}
+
+// নতুন মডেল: ক্যাটাগরি বা কালেকশন ম্যানেজমেন্টের জন্য
+model Category {
+  id          String  @id @default(uuid())
+  name        String  @unique // যেমন: "Trending", "Editors Pick", "Award Winning"
+  description String?
+  movies      Movie[] @relation("MovieCategories")
+
+  @@map("category")
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  rating     Int // 1-10
+  content    String   @db.Text
+  isApproved Boolean  @default(false)
+  hasSpoiler Boolean  @default(false)
+  tags       String[]
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movieId String
+  movie   Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  likes    Like[]
+  comments Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("review")
+}
+
+// --- লাইক এবং কমেন্ট মডেল ---
+model Like {
+  id       String @id @default(uuid())
+  userId   String
+  reviewId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reviewId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Watchlist {
+  id      String   @id @default(uuid())
+  userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movieId String
+  movie   Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  addedAt DateTime @default(now())
+
+  @@unique([userId, movieId]) // একই মুভি দুবার অ্যাড করা যাবে না
+  @@map("watchlist")
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  amount        Float
+  currency      String        @default("USD")
+  status        PaymentStatus @default(PENDING)
+  transactionId String        @unique
+  method        String? // Stripe, SSLCommerz, etc.
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("payment")
+}
+
 model Session {
-  id        String   @id
+  id        String   @id @default(uuid())
   expiresAt DateTime
   token     String
   createdAt DateTime @default(now())
@@ -47,7 +213,7 @@ model Session {
 }
 
 model Account {
-  id                    String    @id
+  id                    String    @id @default(uuid())
   accountId             String
   providerId            String
   userId                String
@@ -67,7 +233,7 @@ model Account {
 }
 
 model Verification {
-  id         String   @id
+  id         String   @id @default(uuid())
   identifier String
   value      String
   expiresAt  DateTime

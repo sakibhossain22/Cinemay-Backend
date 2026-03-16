@@ -8,7 +8,7 @@
     "dev": "npx tsx watch modules/server.ts",
     "seed:adminUser": "npx tsx src/scripts/seedAdminUser.ts",
     "build": "prisma generate && tsup modules/server.ts --format esm --platform node --target node20 --outDir api --external pg-native",
-    "postinstall": "prisma generate"
+    "generate": "npx prisma migrate dev && npx prisma generate"
   },
   "keywords": [],
   "author": "",
