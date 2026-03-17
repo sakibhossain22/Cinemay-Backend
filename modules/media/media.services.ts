@@ -1,6 +1,7 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { IMovie } from "./media.interface";
 import { prisma } from "../../src/lib/prisma";
+import { MediaType } from "../../generated/prisma/enums";
 
 const addMedia = async (movie: IMovie) => {
     try {
@@ -26,7 +27,7 @@ const getMovie = async () => {
     try {
         const res = await prisma.movie.findMany({
             where : {
-                type : "MOVIE"
+                type : MediaType.MOVIE
             }
         });
         return res;
@@ -37,7 +38,11 @@ const getMovie = async () => {
 }
 const getSeries = async () => {
     try {
-        const res = await prisma.movie.findMany();
+        const res = await prisma.movie.findMany({
+            where : {
+                type : MediaType.SERIES
+            }
+        });
         return res;
     } catch (error) {
         throw new Error("Failed to Get All Series");
