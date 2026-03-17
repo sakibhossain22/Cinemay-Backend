@@ -7,4 +7,4 @@ const router = Router();
 
 
 
-export const mediaRoutes = router;
+export const paymentRoutes = router;

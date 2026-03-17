@@ -3,6 +3,13 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from '../src/lib/auth';
 import cors from 'cors';
 import { notFound } from '../src/lib/middlewares/notFound';
+import { paymentRoutes } from './payment/payment.routes';
+import { userRoutes } from './user/user.routes';
+import { watchListRoutes } from './watchlist/watchlist.routes';
+import { reviewRoutes } from './review/review.routes';
+import { mediaRoutes } from './media/media.routes';
+import { adminRoutes } from './admin/admin.routes';
+import { authRoutes } from './auth/auth.routes';
 
 
 
@@ -15,8 +22,15 @@ app.use(cors({
 }));
 
 // Api
-app.all("/api/auth/*slat", toNodeHandler(auth));
+app.use("/api/auth", authRoutes);
 
+app.all("/api/auth/*slat", toNodeHandler(auth));
+app.use("/api/media", mediaRoutes);
+app.use("/api/review", reviewRoutes);
+app.use("/api/watchlist", watchListRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/admin", adminRoutes);
 
 
 
