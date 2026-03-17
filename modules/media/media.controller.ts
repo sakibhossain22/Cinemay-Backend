@@ -23,8 +23,31 @@ const addMedia = async (req: Request, res: Response) => {
             );
     }
 }
+const getAllMedia = async (req: Request, res: Response) => {
+    try {
+        const result = await mediaService.getAllMedia();
+        res.status(200).json({
+            success: true,
+            ok: true,
+            data: result
+        })
+
+
+    } catch (error) {
+        const errorMessage = (error instanceof Error) ? error.message : "Failed to Get  Media"
+        res.status(500)
+            .json(
+                {
+                    success: false,
+                    data: null,
+                    error: errorMessage
+                }
+            );
+    }
+}
 
 
 export const mediaController = {
     addMedia,
+    getAllMedia
 }

@@ -13,7 +13,17 @@ const addMedia = async (movie: IMovie) => {
     }
 
 }
+const getAllMedia = async () => {
+    try {
+        const res = await prisma.movie.findMany();
+        return res;
+    } catch (error) {
+        throw new Error("Failed to Get All Media");
+    }
+
+}
 
 export const mediaService = {
     addMedia,
+    getAllMedia
 }
