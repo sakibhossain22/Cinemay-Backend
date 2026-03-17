@@ -16,5 +16,14 @@ export interface IMovie {
   buyPrice?: number | null;
   rentPrice?: number | null;
   rentDuration?: number | null;
-  
+
+}
+export interface IQuery {
+  genre: string
+  releaseYear: string
+  rating: string,
+  type: MediaType
+  searchTerm: string
+  page: number
+  limit: number
 }

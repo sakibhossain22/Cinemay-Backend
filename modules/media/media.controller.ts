@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { mediaService } from "./media.services";
+import { IQuery } from "./media.interface";
 
 const addMedia = async (req: Request, res: Response) => {
     try {
@@ -25,7 +26,7 @@ const addMedia = async (req: Request, res: Response) => {
 }
 const getAllMedia = async (req: Request, res: Response) => {
     try {
-        const result = await mediaService.getAllMedia();
+        const result = await mediaService.getAllMedia(req.query as any );
         res.status(200).json({
             success: true,
             ok: true,
