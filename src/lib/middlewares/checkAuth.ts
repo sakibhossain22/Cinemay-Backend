@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express"
-import { auth as betterAuth } from "../../lib/auth"
+import { auth as betterAuth } from "../auth"
+import { Role } from "../../../generated/prisma/enums";
 
 declare global {
     namespace Express {
@@ -15,16 +16,13 @@ declare global {
         }
     }
 }
-export enum UserRole {
-    ADMIN = "ADMIN",
-    USER = "USER",
-}
-const auth = (...role: UserRole[]) => {
+
+const checkAuth = (...role: Role[]) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         const session = await betterAuth.api.getSession({
             headers: req.headers as any
         })
-
+        console.log(session)
         if (!session || !session.user) {
             return res.status(401).json({ error: "Unauthorized" });
         }
@@ -41,11 +39,11 @@ const auth = (...role: UserRole[]) => {
             emailVerified: session.user.emailVerified,
             status: session.user.status
         }
-        if (role.length > 0 && (!req.user.role || !role.includes(req.user.role as UserRole))) {
+        if (role.length > 0 && (!req.user.role || !role.includes(req.user.role as Role))) {
             return res.status(403).json({ error: "Forbidden" });
         }
         next()
     }
 }
 
-export default auth;
+export default checkAuth;
