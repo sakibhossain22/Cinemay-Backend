@@ -95,6 +95,7 @@ model Purchase {
 model Movie {
   id            String      @id @default(uuid())
   title         String
+  username      String?     @unique
   type          MediaType   @default(MOVIE) // MOVIE অথবা SERIES
   synopsis      String      @db.Text
   posterUrl     String?

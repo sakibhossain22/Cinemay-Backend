@@ -22,8 +22,43 @@ const getAllMedia = async () => {
     }
 
 }
+const getMovie = async () => {
+    try {
+        const res = await prisma.movie.findMany({
+            where : {
+                type : "MOVIE"
+            }
+        });
+        return res;
+    } catch (error) {
+        throw new Error("Failed to Get All Media");
+    }
+
+}
+const getSeries = async () => {
+    try {
+        const res = await prisma.movie.findMany();
+        return res;
+    } catch (error) {
+        throw new Error("Failed to Get All Series");
+    }
+}
+const getMediaById = async (id: string) => {
+    try {
+        const res = await prisma.movie.findUnique({
+            where: { id }
+        });
+        return res;
+    } catch (error) {
+        throw new Error("Failed to Get Media by id");
+    }
+}
+
 
 export const mediaService = {
     addMedia,
-    getAllMedia
+    getAllMedia,
+    getMovie,
+    getSeries,
+    getMediaById
 }
