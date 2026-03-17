@@ -1,7 +1,9 @@
+import { ContentType, MediaType } from "../../generated/prisma/enums";
+
 export interface IMovie {
   id: string;
   title: string;
-  type: "MOVIE" | "SERIES";
+  type: MediaType;
   synopsis: string;
   posterUrl?: string | null;
   genre: string[];
@@ -9,7 +11,7 @@ export interface IMovie {
   director: string;
   cast: string[];
   streamingLink?: string | null;
-  contentType: "FREE" | "PREMIUM";
+  contentType: ContentType;
   ratingAverage: number;
   buyPrice?: number | null;
   rentPrice?: number | null;

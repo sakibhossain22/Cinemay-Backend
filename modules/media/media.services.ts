@@ -26,8 +26,8 @@ const getAllMedia = async () => {
 const getMovie = async () => {
     try {
         const res = await prisma.movie.findMany({
-            where : {
-                type : MediaType.MOVIE
+            where: {
+                type: MediaType.MOVIE
             }
         });
         return res;
@@ -39,8 +39,8 @@ const getMovie = async () => {
 const getSeries = async () => {
     try {
         const res = await prisma.movie.findMany({
-            where : {
-                type : MediaType.SERIES
+            where: {
+                type: MediaType.SERIES
             }
         });
         return res;
@@ -51,7 +51,10 @@ const getSeries = async () => {
 const getMediaById = async (id: string) => {
     try {
         const res = await prisma.movie.findUnique({
-            where: { id }
+            where: {
+                id
+            }
+
         });
         return res;
     } catch (error) {
