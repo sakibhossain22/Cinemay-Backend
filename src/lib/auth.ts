@@ -17,7 +17,7 @@ export const auth = betterAuth({
         additionalFields: {
             role: { type: "string", isRequired: true, default: Role.USER },
             status: { type: "string", required: true, default: UserStatus.ACTIVE },
-            phone: { type: "string", required: true },
+            phone: { type: "string", required: false },
             isPremium: { type: "boolean", required: true, default: false },
         }
     },

@@ -33,10 +33,8 @@ const register = async (req: Request, res: Response) => {
 }
 const login = async (req: Request, res: Response) => {
     try {
-        // Here you would typically call your authentication service to login the user
         const result = await authServices.login(req.body);
         if (result.accessToken) {
-            // Set the access token in a cookie
             tokenUtils.setBetterAuthAccessTokenCookie(res, result.token as string);
         }
         if (result.accessToken) {

@@ -1,16 +1,20 @@
 import { Request, Response } from "express";
+import { reviewServices } from "./review.services";
 
-const addMedia = async (req: Request, res: Response) => {
+const addReview = async (req: Request, res: Response) => {
     try {
+        const userId = req.user?.id as string
+        const reviewData = req.body
 
+        const result = await reviewServices.addReview(reviewData, userId)
         res.status(200).json({
             success: true,
             ok: true,
-            
+            data: result
         })
 
     } catch (error) {
-        const errorMessage = (error instanceof Error) ? error.message : "Failed to Add Media"
+        const errorMessage = (error instanceof Error) ? error.message : "Failed to Add Review"
         res.status(500)
             .json(
                 {
@@ -23,6 +27,6 @@ const addMedia = async (req: Request, res: Response) => {
 }
 
 
-export const mediaController = {
-    addMedia,
+export const reviewController = {
+    addReview,
 }

@@ -5,7 +5,7 @@ import { Role } from "../../generated/prisma/enums";
 
 const router = Router();
 
-router.post("/add-media", checkAuth(Role.ADMIN),mediaController.addMedia);
+router.post("/add-media", checkAuth(Role.ADMIN), mediaController.addMedia);
 router.get("/all-media", checkAuth(Role.USER), mediaController.getAllMedia);
 router.get("/movies", mediaController.getMovie);
 router.get("/series", mediaController.getSeries);

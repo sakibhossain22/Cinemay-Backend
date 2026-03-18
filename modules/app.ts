@@ -10,14 +10,15 @@ import { reviewRoutes } from './review/review.routes';
 import { mediaRoutes } from './media/media.routes';
 import { adminRoutes } from './admin/admin.routes';
 import { authRoutes } from './auth/auth.routes';
-
+import cookieParser from 'cookie-parser';
 
 
 const app = express();
+app.use(cookieParser())
 
 app.use(express.json());
 app.use(cors({
-    origin: process.env.APP_URL || "http://localhost:5000",
+    origin: process.env.APP_URL,
     credentials: true
 }));
 
