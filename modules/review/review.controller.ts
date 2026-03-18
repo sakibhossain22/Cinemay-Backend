@@ -8,7 +8,8 @@ const addReview = async (req: Request, res: Response) => {
 
         const result = await reviewServices.addReview(reviewData, userId)
         res.status(200).json({
-            success: "Review Added Successfully",
+            success: true,
+            message: "Review Added Successfully",
             ok: true,
             data: result
         })
@@ -33,7 +34,8 @@ const editReview = async (req: Request, res: Response) => {
 
         const result = await reviewServices.editReview(reviewId as string, reviewData, userId)
         res.status(200).json({
-            success: "Review Updated Successfully",
+            success: true,
+            message: "Review Updated Successfully",
             ok: true,
             data: result
         })
@@ -56,7 +58,8 @@ const deleteReview = async (req: Request, res: Response) => {
         const userId = req.user?.id as string
         const result = await reviewServices.deleteReview(reviewId as string, userId as string)
         res.status(200).json({
-            success: "Review Deleted Successfully",
+           success: true,
+            message: "Review Deleted Successfully",
             ok: true,
             data: result
         })
@@ -80,7 +83,8 @@ const addLikeInReview = async (req: Request, res: Response) => {
 
         const result = await reviewServices.addLikeInReview(reviewId as string, userId as string)
         res.status(200).json({
-            success: "Review Liked Successfully",
+            success: true,
+            message: "Review Liked Successfully",
             ok: true,
             data: result
         })
@@ -101,7 +105,8 @@ const getAllReviews = async (req: Request, res: Response) => {
     try {
         const result = await reviewServices.getAllReviews()
         res.status(200).json({
-            success: "All Reviews Retrieved Successfully",
+            success: true,
+            message: "All Reviews Retrieved Successfully",
             ok: true,
             data: result
         })
@@ -118,7 +123,6 @@ const getAllReviews = async (req: Request, res: Response) => {
             );
     }
 }
-
 
 export const reviewController = {
     addReview,

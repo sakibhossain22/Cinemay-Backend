@@ -1,11 +1,10 @@
 import { Request, Response } from "express";
 
-const addMedia = async (req: Request, res: Response) => {
+const purchaseMedia = async (req: Request, res: Response) => {
     try {
-
+        
         res.status(200).json({
             success: true,
-            message: "Media Added Successfully",
             ok: true,
             
         })
@@ -24,6 +23,6 @@ const addMedia = async (req: Request, res: Response) => {
 }
 
 
-export const mediaController = {
-    addMedia,
+export const purchaseController = {
+    purchaseMedia,
 }

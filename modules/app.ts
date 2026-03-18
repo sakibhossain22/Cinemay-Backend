@@ -11,6 +11,8 @@ import { mediaRoutes } from './media/media.routes';
 import { adminRoutes } from './admin/admin.routes';
 import { authRoutes } from './auth/auth.routes';
 import cookieParser from 'cookie-parser';
+import { commentRoutes } from './comment/comment.routes';
+import { purchaseRoutes } from './purchase/purchase.routes';
 
 
 const app = express();
@@ -32,6 +34,8 @@ app.use("/api/watchlist", watchListRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/purchase", purchaseRoutes);
 
 
 

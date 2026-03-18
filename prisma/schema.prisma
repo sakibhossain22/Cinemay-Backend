@@ -65,6 +65,7 @@ model User {
   watchlists    Watchlist[]
   payments      Payment[]
   likes         Like[]
+  comments      Comment[]
 
   @@unique([email])
   @@map("user")
@@ -169,11 +170,24 @@ model Like {
 
 model Comment {
   id        String   @id @default(uuid())
-  content   String
+  content   String   @db.Text
+  
+  // রিলেশনস
   userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   reviewId  String
   review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  // রিপ্লাই লজিক (Self-Referencing)
+  parentId  String?  // যদি এটি কোনো কমেন্টের রিপ্লাই হয়
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comment")
 }
 
 model Watchlist {

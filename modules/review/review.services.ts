@@ -190,10 +190,11 @@ const addLikeInReview = async (reviewId: string, userId: string) => {
         throw new Error("Failed to toggle like on review");
     }
 };
+
 export const reviewServices = {
     addReview,
     deleteReview,
     addLikeInReview,
     editReview,
-    getAllReviews
+    getAllReviews,
 }   

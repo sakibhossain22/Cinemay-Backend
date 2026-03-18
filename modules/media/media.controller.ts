@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import { mediaService } from "./media.services";
-import { IQuery } from "./media.interface";
 
 const addMedia = async (req: Request, res: Response) => {
     try {
         const result = await mediaService.addMedia(req.body);
         res.status(200).json({
             success: true,
+            message: "Media Added Successfully",
             ok: true,
             data: result
         })
@@ -29,6 +29,7 @@ const getAllMedia = async (req: Request, res: Response) => {
         const result = await mediaService.getAllMedia(req.query as any );
         res.status(200).json({
             success: true,
+            message: "All Media Retrieved Successfully",
             ok: true,
             data: result
         })
@@ -51,6 +52,7 @@ const getMovie = async (req: Request, res: Response) => {
         const result = await mediaService.getMovie();
         res.status(200).json({
             success: true,
+            message: "Movie Retrieved Successfully",
             ok: true,
             data: result
         })
@@ -73,6 +75,7 @@ const getSeries = async (req: Request, res: Response) => {
         const result = await mediaService.getSeries();
         res.status(200).json({
             success: true,
+            message: "Series Retrieved Successfully",
             ok: true,
             data: result
         })
@@ -96,6 +99,7 @@ const getMediaById = async (req: Request, res: Response) => {
         const result = await mediaService.getMediaById(id as string);
         res.status(200).json({
             success: true,
+            message: "Media Retrieved Successfully",
             ok: true,
             data: result
         })
