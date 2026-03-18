@@ -123,10 +123,77 @@ const getAllReviews = async () => {
         throw error
     }
 }
+const addLikeInReview = async (reviewId: string, userId: string) => {
+    try {
+        // ১. চেক করা ইউজার আগে লাইক দিয়েছে কি না
+        const existingLike = await prisma.like.findUnique({
+            where: {
+                userId_reviewId: {
+                    userId,
+                    reviewId,
+                },
+            },
+        });
 
+        return await prisma.$transaction(async (tx) => {
+            if (existingLike) {
+                // ২. যদি আগে লাইক থাকে -> ডিলিট করো (Unlike)
+                await tx.like.delete({
+                    where: {
+                        id: existingLike.id,
+                    },
+                });
+
+                // ৩. রিভিউর মোট লাইক সংখ্যা কমাও
+                const updatedReview = await tx.review.update({
+                    where: { id: reviewId },
+                    data: {
+                        likeCount: {
+                            decrement: 1,
+                        },
+                    },
+                });
+
+                return {
+                    message: "Like removed",
+                    liked: false,
+                    totalLikes: updatedReview.likeCount
+                };
+            } else {
+                // ৪. যদি লাইক না থাকে -> নতুন লাইক তৈরি করো
+                await tx.like.create({
+                    data: {
+                        reviewId,
+                        userId,
+                    },
+                });
+
+                // ৫. রিভিউর মোট লাইক সংখ্যা বাড়াও
+                const updatedReview = await tx.review.update({
+                    where: { id: reviewId },
+                    data: {
+                        likeCount: {
+                            increment: 1,
+                        },
+                    },
+                });
+
+                return {
+                    message: "Like added",
+                    liked: true,
+                    totalLikes: updatedReview.likeCount
+                };
+            }
+        });
+    } catch (error) {
+        console.error("Error in addLikeInReview:", error);
+        throw new Error("Failed to toggle like on review");
+    }
+};
 export const reviewServices = {
     addReview,
     deleteReview,
+    addLikeInReview,
     editReview,
     getAllReviews
 }   

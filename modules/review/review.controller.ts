@@ -73,6 +73,30 @@ const deleteReview = async (req: Request, res: Response) => {
             );
     }
 }
+const addLikeInReview = async (req: Request, res: Response) => {
+    try {
+        const { reviewId } = req.body
+        const userId = req.user?.id as string
+
+        const result = await reviewServices.addLikeInReview(reviewId as string, userId as string)
+        res.status(200).json({
+            success: "Review Liked Successfully",
+            ok: true,
+            data: result
+        })
+
+    } catch (error) {
+        const errorMessage = (error instanceof Error) ? error.message : "Failed to Like Review"
+        res.status(500)
+            .json(
+                {
+                    success: false,
+                    data: null,
+                    error: errorMessage
+                }
+            );
+    }
+}
 const getAllReviews = async (req: Request, res: Response) => {
     try {
         const result = await reviewServices.getAllReviews()
@@ -100,5 +124,6 @@ export const reviewController = {
     addReview,
     editReview,
     deleteReview,
-    getAllReviews
+    getAllReviews,
+    addLikeInReview
 }

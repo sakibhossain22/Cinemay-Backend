@@ -145,6 +145,7 @@ model Review {
   movieId String
   movie   Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
+  likeCount  Int      @default(0) // এটি যোগ করুন লাইক এবং আনলাইক ট্র্যাক করার জন্য
   likes    Like[]
   comments Comment[]
 
@@ -156,11 +157,12 @@ model Review {
 
 // --- লাইক এবং কমেন্ট মডেল ---
 model Like {
-  id       String @id @default(uuid())
-  userId   String
-  reviewId String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  id        String @id @default(uuid())
+  userId    String
+  reviewId  String
+  likeCount Int    @default(0) // লাইক বা আনলাইক ট্র্যাক করার জন্য
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review    Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
   @@unique([userId, reviewId])
 }
