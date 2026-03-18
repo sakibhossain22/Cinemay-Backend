@@ -73,10 +73,32 @@ const deleteReview = async (req: Request, res: Response) => {
             );
     }
 }
+const getAllReviews = async (req: Request, res: Response) => {
+    try {
+        const result = await reviewServices.getAllReviews()
+        res.status(200).json({
+            success: "All Reviews Retrieved Successfully",
+            ok: true,
+            data: result
+        })
+
+    } catch (error) {
+        const errorMessage = (error instanceof Error) ? error.message : "Failed to Retrieve Reviews"
+        res.status(500)
+            .json(
+                {
+                    success: false,
+                    data: null,
+                    error: errorMessage
+                }
+            );
+    }
+}
 
 
 export const reviewController = {
     addReview,
     editReview,
-    deleteReview
+    deleteReview,
+    getAllReviews
 }

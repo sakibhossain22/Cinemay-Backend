@@ -1,3 +1,4 @@
+import { tr } from "zod/locales"
 import { AppError } from "../../src/error/AppError"
 import { prisma } from "../../src/lib/prisma"
 import { IReview } from "./review.interface"
@@ -91,9 +92,41 @@ const deleteReview = async (reviewId: string, userId: string) => {
         throw error
     }
 }
+const getAllReviews = async () => {
+    try {
+        const result = await prisma.review.findMany({
+            include: {
+                user: {
+                    select: {
+                        email: true,
+                        name: true,
+                        isPremium: true,
+                        image: true
+                    }
+                },
+                comments: true,
+                likes: true,
+                movie: {
+                    select: {
+                        title: true,
+                        streamingLink: true,
+                        genre: true,
+                        releaseYear: true,
+                        cast: true,
+                        type: true,
+                    }
+                }
+            }
+        })
+        return result
+    } catch (error) {
+        throw error
+    }
+}
 
 export const reviewServices = {
     addReview,
     deleteReview,
-    editReview
-}
+    editReview,
+    getAllReviews
+}   
