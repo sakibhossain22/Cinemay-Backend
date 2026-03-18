@@ -23,7 +23,7 @@ const addReview = async (reviewData: IReview, userId: string) => {
                         image: true
                     }
                 },
-                comments : true,
+                comments: true,
                 likes: true,
             }
         })
@@ -32,14 +32,27 @@ const addReview = async (reviewData: IReview, userId: string) => {
         throw error
     }
 }
-const addReviews = async (reviewData: IReview) => {
+const editReview = async (reviewId: string, reviewData: IReview, userId: string) => {
     try {
 
     } catch (error) {
         throw error
     }
 }
+const deleteReview = async (reviewId: string) => {
+    try {
+        const result = await prisma.review.delete({
+            where: {
+                id: reviewId
+            }
+        })
+        return result
+    } catch (error) {
+        throw error
+    }
+}
 
 export const reviewServices = {
-    addReview
+    addReview,
+    deleteReview
 }
