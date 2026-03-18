@@ -15,7 +15,7 @@ const register = async (data: RegisterRequest) => {
                 phone,
                 role: Role.USER,
                 status: UserStatus.ACTIVE,
-                isPremium: false,
+                isPremium: false
             }
         });
         let accessTokenGenerated = null;

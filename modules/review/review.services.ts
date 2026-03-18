@@ -1,3 +1,4 @@
+import { AppError } from "../../src/error/AppError"
 import { prisma } from "../../src/lib/prisma"
 import { IReview } from "./review.interface"
 
@@ -32,15 +33,54 @@ const addReview = async (reviewData: IReview, userId: string) => {
         throw error
     }
 }
-const editReview = async (reviewId: string, reviewData: IReview, userId: string) => {
+const editReview = async (reviewId: string, reviewData: Partial<IReview>, userId: string) => {
     try {
+        const { rating, content, movieId } = reviewData
 
+        const existingReview = await prisma.review.findUnique({
+            where: {
+                id: reviewId
+            }
+        })
+
+        if (!existingReview) {
+            throw new AppError("Review not found")
+        }
+        if (existingReview.userId !== userId) {
+            throw new AppError("You are not authorized to edit this review", 403)
+        }
+        const result = await prisma.review.update({
+            where: {
+                id: reviewId
+            },
+            data: {
+                rating,
+                content,
+                movieId
+            }
+        })
+
+        return result
     } catch (error) {
         throw error
     }
 }
-const deleteReview = async (reviewId: string) => {
+const deleteReview = async (reviewId: string, userId: string) => {
     try {
+        const existingReview = await prisma.review.findUnique({
+            where: {
+                id: reviewId
+            }
+        })
+
+        if (!existingReview) {
+            throw new AppError("Review not found")
+        }
+
+        if (existingReview.userId !== userId) {
+            throw new AppError("You are not authorized to delete this review", 403)
+        }
+
         const result = await prisma.review.delete({
             where: {
                 id: reviewId
@@ -54,5 +94,6 @@ const deleteReview = async (reviewId: string) => {
 
 export const reviewServices = {
     addReview,
-    deleteReview
+    deleteReview,
+    editReview
 }

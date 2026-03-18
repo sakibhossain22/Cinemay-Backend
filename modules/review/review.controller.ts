@@ -8,7 +8,7 @@ const addReview = async (req: Request, res: Response) => {
 
         const result = await reviewServices.addReview(reviewData, userId)
         res.status(200).json({
-            success: true,
+            success: "Review Added Successfully",
             ok: true,
             data: result
         })
@@ -31,9 +31,9 @@ const editReview = async (req: Request, res: Response) => {
         const reviewId = req.params.reviewId
         const reviewData = req.body
 
-        const result = await reviewServices.editReview(reviewId, reviewData, userId)
+        const result = await reviewServices.editReview(reviewId as string, reviewData, userId)
         res.status(200).json({
-            success: true,
+            success: "Review Updated Successfully",
             ok: true,
             data: result
         })
@@ -53,10 +53,10 @@ const editReview = async (req: Request, res: Response) => {
 const deleteReview = async (req: Request, res: Response) => {
     try {
         const reviewId = req.params.reviewId
-
-        const result = await reviewServices.deleteReview(reviewId as string)
+        const userId = req.user?.id as string
+        const result = await reviewServices.deleteReview(reviewId as string, userId as string)
         res.status(200).json({
-            success: true,
+            success: "Review Deleted Successfully",
             ok: true,
             data: result
         })
