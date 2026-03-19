@@ -90,7 +90,22 @@ model Purchase {
 
   @@map("purchase")
 }
+model Payment {
+  id            String        @id @default(uuid())
+  amount        Float
+  currency      String        @default("USD")
+  status        PaymentStatus @default(PENDING)
+  transactionId String        @unique
+  clientSecret String?       // Stripe এর জন্য ক্লায়েন্ট সিক্রেট
+  method        String? // Stripe, SSLCommerz, etc.
 
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+
+  @@map("payment")
+}
 // --- Movie Portal Specific Models ---
 
 model Movie {
@@ -202,21 +217,7 @@ model Watchlist {
   @@map("watchlist")
 }
 
-model Payment {
-  id            String        @id @default(uuid())
-  amount        Float
-  currency      String        @default("USD")
-  status        PaymentStatus @default(PENDING)
-  transactionId String        @unique
-  method        String? // Stripe, SSLCommerz, etc.
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-
-  @@map("payment")
-}
 
 model Session {
   id        String   @id @default(uuid())

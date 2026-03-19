@@ -1,8 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { Role } from "../../../generated/prisma/enums";
-import { auth } from "../auth";
-import { betterAuth, Auth } from "better-auth";
-import { cookieFunc } from "../../utils/cookie";
 import { prisma } from "../prisma";
 
 // Express Request Interface এক্সটেন্ড করা

@@ -15,6 +15,7 @@ import { commentRoutes } from './comment/comment.routes';
 import { purchaseRoutes } from './purchase/purchase.routes';
 
 
+
 const app = express();
 app.use(cookieParser())
 
@@ -36,7 +37,6 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/purchase", purchaseRoutes);
-
 
 
 
