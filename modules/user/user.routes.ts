@@ -5,9 +5,11 @@ import { Role } from "../../generated/prisma/enums";
 
 const router = Router();
 
-router.post("/subscribe",checkAuth(Role.USER), userController.subscribeUser);
-router.post("/confirm-subscription",checkAuth(Role.USER), userController.confirmUserSubscription);
+router.post("/subscribe", checkAuth(Role.USER), userController.subscribeUser);
+router.post("/confirm-subscription", checkAuth(Role.USER), userController.confirmUserSubscription);
+router.get("/dashboard", checkAuth(), userController.getDashboard);
 
+router.patch("/profile/update", checkAuth(), userController.updateMyProfile);
 
 
 

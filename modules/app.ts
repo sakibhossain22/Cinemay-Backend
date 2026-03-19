@@ -36,7 +36,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/purchase", purchaseRoutes);
-app.use("/api/user/subscription", userRoutes);
+app.use("/api/user", userRoutes);
 
 
 

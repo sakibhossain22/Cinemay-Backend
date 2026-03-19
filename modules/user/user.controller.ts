@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { stripeService } from "../../src/lib/stripe.service";
 import { prisma } from "../../src/lib/prisma";
+import { userService } from "./user.services";
 
 const subscribeUser = async (req: Request, res: Response) => {
     try {
@@ -72,7 +73,40 @@ const confirmUserSubscription = async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+const getDashboard = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const data = await userService.getUserDashboardData(userId!);
+
+        res.status(200).json({
+            success: true,
+            data
+        });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const updateMyProfile = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const { name, image } = req.body;
+
+        const updatedUser = await userService.updateProfile(userId!, { name, image });
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            data: updatedUser
+        });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 export const userController = {
     confirmUserSubscription,
-    subscribeUser
+    subscribeUser,
+    getDashboard,
+    updateMyProfile
 }
