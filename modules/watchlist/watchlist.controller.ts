@@ -1,16 +1,25 @@
 import { Request, Response } from "express";
+import { watchlistService } from "./watchlist.services";
 
-const addMedia = async (req: Request, res: Response) => {
+const addToWatchlist = async (req: Request, res: Response) => {
     try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ success: false, message: "Unauthorized", data: null });
+        }
+        const { movieId } = req.body;
+        const watchlistItem = await watchlistService.addToWatchlist({ userId: user.id as string, movieId });
 
         res.status(200).json({
             success: true,
+            message: "Media added to watchlist successfully",
             ok: true,
-            
+            data: watchlistItem
+
         })
 
     } catch (error) {
-        const errorMessage = (error instanceof Error) ? error.message : "Failed to Add Media"
+        const errorMessage = (error instanceof Error) ? error.message : "Failed to Add to Watchlist"
         res.status(500)
             .json(
                 {
@@ -23,6 +32,6 @@ const addMedia = async (req: Request, res: Response) => {
 }
 
 
-export const mediaController = {
-    addMedia,
+export const watchlistController = {
+    addToWatchlist,
 }
