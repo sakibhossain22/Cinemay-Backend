@@ -46,26 +46,28 @@ enum UserStatus {
 }
 
 model User {
-  id            String      @id @default(uuid())
-  name          String
-  email         String
-  emailVerified Boolean     @default(false)
-  image         String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  role          Role        @default(USER)
-  status        UserStatus? @default(ACTIVE)
-  phone         String?
-  isPremium     Boolean     @default(false)
-  sessions      Session[]
-  accounts      Account[]
+  id               String      @id @default(uuid())
+  name             String
+  email            String
+  emailVerified    Boolean     @default(false)
+  image            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  role             Role        @default(USER)
+  status           UserStatus? @default(ACTIVE)
+  phone            String?
+  isPremium        Boolean     @default(false)
+  resetCode        Int? // ৬ ডিজিটের কোড এখানে সেভ হবে
+  resetCodeExpires DateTime?
+  sessions         Session[]
+  accounts         Account[]
   // App specific relations
-  purchases     Purchase[]
-  reviews       Review[]
-  watchlists    Watchlist[]
-  payments      Payment[]
-  likes         Like[]
-  comments      Comment[]
+  purchases        Purchase[]
+  reviews          Review[]
+  watchlists       Watchlist[]
+  payments         Payment[]
+  likes            Like[]
+  comments         Comment[]
 
   @@unique([email])
   @@map("user")
@@ -90,22 +92,24 @@ model Purchase {
 
   @@map("purchase")
 }
+
 model Payment {
   id            String        @id @default(uuid())
   amount        Float
   currency      String        @default("USD")
   status        PaymentStatus @default(PENDING)
   transactionId String        @unique
-  clientSecret String?       // Stripe এর জন্য ক্লায়েন্ট সিক্রেট
+  clientSecret  String? // Stripe এর জন্য ক্লায়েন্ট সিক্রেট
   method        String? // Stripe, SSLCommerz, etc.
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
-  
+
   createdAt DateTime @default(now())
 
   @@map("payment")
 }
+
 // --- Movie Portal Specific Models ---
 
 model Movie {
@@ -161,9 +165,9 @@ model Review {
   movieId String
   movie   Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
-  likeCount  Int      @default(0) // এটি যোগ করুন লাইক এবং আনলাইক ট্র্যাক করার জন্য
-  likes    Like[]
-  comments Comment[]
+  likeCount Int       @default(0) // এটি যোগ করুন লাইক এবং আনলাইক ট্র্যাক করার জন্য
+  likes     Like[]
+  comments  Comment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -184,20 +188,20 @@ model Like {
 }
 
 model Comment {
-  id        String   @id @default(uuid())
-  content   String   @db.Text
-  
+  id      String @id @default(uuid())
+  content String @db.Text
+
   // রিলেশনস
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  reviewId  String
-  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  reviewId String
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
   // রিপ্লাই লজিক (Self-Referencing)
-  parentId  String?  // যদি এটি কোনো কমেন্টের রিপ্লাই হয়
-  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Comment[] @relation("CommentReplies")
+  parentId String? // যদি এটি কোনো কমেন্টের রিপ্লাই হয়
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -216,8 +220,6 @@ model Watchlist {
   @@unique([userId, movieId]) // একই মুভি দুবার অ্যাড করা যাবে না
   @@map("watchlist")
 }
-
-
 
 model Session {
   id        String   @id @default(uuid())

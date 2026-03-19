@@ -1,11 +1,24 @@
 import { IMovie, IQuery } from "./media.interface";
 import { prisma } from "../../src/lib/prisma";
 import { MediaType } from "../../generated/prisma/enums";
+import { randomBytes } from "node:crypto";
 
 const addMedia = async (movie: IMovie) => {
     try {
+        let customid = movie.title.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').concat(`-${movie.releaseYear}`);
+        const isCustomIdExist = await prisma.movie.findUnique({
+            where: {
+                customid: customid
+            }
+        })
+        if (isCustomIdExist) {
+            customid = `${customid + Math.floor(Math.random() * 100)}`
+        }
         const res = await prisma.movie.create({
-            data: movie
+            data: {
+                customid,
+                ...movie
+            }
         });
         return res;
     } catch (error) {

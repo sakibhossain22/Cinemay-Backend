@@ -4,6 +4,7 @@ import { tokenUtils } from "../../src/utils/token";
 
 const register = async (req: Request, res: Response) => {
     try {
+        console.log(req.body)
         // Here you would typically call your authentication service to register the user
         const result = await authServices.register(req.body);
         if (result.accessToken) {
@@ -60,9 +61,29 @@ const login = async (req: Request, res: Response) => {
             );
     }
 }
+const forgotPassword = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        await authServices.sendResetCode(email);
+        res.status(200).json({ success: true, message: "OTP sent to your email" });
+    } catch (error: any) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
 
+const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const { email, code, newPassword } = req.body;
+        await authServices.verifyCodeAndResetPassword(email, code, newPassword);
+        res.status(200).json({ success: true, message: "Password updated successfully" });
+    } catch (error: any) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
 
 export const authController = {
     register,
-    login
+    login,
+    forgotPassword,
+    resetPassword
 }

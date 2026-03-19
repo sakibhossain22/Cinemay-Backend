@@ -1,49 +1,48 @@
 import { prisma } from "../../src/lib/prisma";
 
 const getUserDashboardData = async (userId: string) => {
-  const [profile, purchases, watchlists, reviews] = await Promise.all([
-    // ১. ইউজারের বেসিক প্রোফাইল
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: { name: true, email: true, image: true, createdAt: true }
-    }),
-    // ২. কেনা বা রেন্ট করা মুভি (Active access গুলো)
-    prisma.purchase.findMany({
-      where: { 
-        userId,
-        OR: [
-          { type: "BUY" },
-          { type: "RENT", expiresAt: { gt: new Date() } }
-        ]
-      },
-      include: { movie: { select: { id: true, title: true, posterUrl: true, type: true } } },
-      orderBy: { createdAt: "desc" }
-    }),
-    // ৩. ওয়াচলিস্ট
-    prisma.watchlist.findMany({
-      where: { userId },
-      include: { movie: { select: { id: true, title: true, posterUrl: true, ratingAverage: true } } }
-    }),
-    // ৪. ইউজারের দেওয়া শেষ ৫টি রিভিউ
-    prisma.review.findMany({
-      where: { userId },
-      take: 5,
-      include: { movie: { select: { title: true } } },
-      orderBy: { createdAt: "desc" }
-    })
-  ]);
+    const [profile, purchases, watchlists, reviews, comments] = await Promise.all([
+        prisma.user.findUnique({
+            where: { id: userId }
+        }),
+        prisma.purchase.findMany({
+            where: {
+                userId,
+                OR: [
+                    { type: "BUY" },
+                    { type: "RENT", expiresAt: { gt: new Date() } }
+                ]
+            },
+            include: { movie: { select: { id: true, title: true, posterUrl: true, type: true } } },
+            orderBy: { createdAt: "desc" }
+        }),
+        prisma.watchlist.findMany({
+            where: { userId },
+            include: { movie: { select: { id: true, title: true, posterUrl: true, ratingAverage: true } } }
+        }),
+        prisma.review.findMany({
+            where: { userId },
+            include: { movie: { select: { title: true } } },
+            orderBy: { createdAt: "desc" }
+        }),
+        prisma.comment.findMany({
+            where: { userId },
+            include: { replies: true, review: { include: { movie: { select: { title: true } } } } },
+            orderBy: { createdAt: "desc" }
+        })
+    ]);
 
-  return { profile, purchases, watchlists, reviews };
+    return { profile, purchases, watchlists, reviews, comments };
 };
 
-const updateProfile = async (userId: string, data: { name?: string; image?: string }) => {
-  return await prisma.user.update({
-    where: { id: userId },
-    data
-  });
+const updateProfile = async (userId: string, data: { name?: string; image?: string, phone?: string }) => {
+    return await prisma.user.update({
+        where: { id: userId },
+        data
+    });
 };
 
 export const userService = {
-  getUserDashboardData,
-  updateProfile
+    getUserDashboardData,
+    updateProfile
 };

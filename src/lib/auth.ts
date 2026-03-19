@@ -19,6 +19,8 @@ export const auth = betterAuth({
             status: { type: "string", required: true, default: UserStatus.ACTIVE },
             phone: { type: "string", required: false },
             isPremium: { type: "boolean", required: true, default: false },
+            resetCodeExpires: { type: "date", required: false },
+            resetCode: { type: "string", required: false },
         }
     },
     socialProviders: {

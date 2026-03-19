@@ -91,9 +91,9 @@ const getDashboard = async (req: Request, res: Response) => {
 const updateMyProfile = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
-        const { name, image } = req.body;
+        const { name, image, phone } = req.body;
 
-        const updatedUser = await userService.updateProfile(userId!, { name, image });
+        const updatedUser = await userService.updateProfile(userId!, { name, image, phone });
 
         res.status(200).json({
             success: true,
