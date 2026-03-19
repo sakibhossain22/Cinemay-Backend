@@ -32,11 +32,11 @@ app.all("/api/auth/*slat", toNodeHandler(auth));
 app.use("/api/media", mediaRoutes);
 app.use("/api/review", reviewRoutes);
 app.use("/api/watchlist", watchListRoutes);
-app.use("/api/user", userRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/purchase", purchaseRoutes);
+app.use("/api/user/subscription", userRoutes);
 
 
 

@@ -23,6 +23,6 @@ const addMedia = async (req: Request, res: Response) => {
 }
 
 
-export const mediaController = {
+export const adminController = {
     addMedia,
 }

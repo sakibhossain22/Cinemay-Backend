@@ -50,6 +50,9 @@ const editReview = async (reviewId: string, reviewData: Partial<IReview>, userId
         if (existingReview.userId !== userId) {
             throw new AppError("You are not authorized to edit this review", 403)
         }
+        if (existingReview.isApproved) {
+            throw new AppError("Approved review cannot be edited because it has already been approved.", 400)
+        }
         const result = await prisma.review.update({
             where: {
                 id: reviewId

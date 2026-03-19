@@ -1,29 +1,78 @@
 import { Request, Response } from "express";
+import { stripeService } from "../../src/lib/stripe.service";
+import { prisma } from "../../src/lib/prisma";
 
-const addMedia = async (req: Request, res: Response) => {
+const subscribeUser = async (req: Request, res: Response) => {
     try {
+        const userId = req.user?.id;
+        const { subscriptionType } = req.body;
+        console.log(subscriptionType)
 
+        const price = subscriptionType === "MONTHLY" ? 199 : 1999;
+        const user = await prisma.user.findUnique(
+            {
+                where: {
+                    id: userId
+                }
+            }
+        );
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+
+        // 1. Create Stripe Payment Intent
+        const paymentIntent = await stripeService.createPaymentIntent(price);
+
+        if (!paymentIntent) return res.status(500).json({ message: "Failed to create payment intent" });
+
+        const newPayment = await prisma.payment.create({
+            data: {
+                userId: userId!,
+                amount: price,
+                currency: "USD",
+                transactionId: paymentIntent.id,
+                clientSecret: paymentIntent.client_secret!,
+                method: "STRIPE_USER_SUBSCRIPTION",
+            }
+        });
         res.status(200).json({
             success: true,
-            message: "Media Added Successfully",
             ok: true,
-            
-        })
-
-    } catch (error) {
-        const errorMessage = (error instanceof Error) ? error.message : "Failed to Add Media"
-        res.status(500)
-            .json(
-                {
-                    success: false,
-                    data: null,
-                    error: errorMessage
-                }
-            );
+            message: "Payment Intent created successfully",
+            ...newPayment
+        });
+    } catch (error: any) {
+        res.status(500).json(
+            {
+                success: false,
+                message: error.message
+            }
+        );
     }
-}
+};
 
+const confirmUserSubscription = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const updateUser = await prisma.user.update({
+            where: {
+                id: userId!
+            },
+            data: {
+                isPremium: true
+            }
+        });
 
-export const mediaController = {
-    addMedia,
+        res.status(201).json({
+            success: true,
+            ok: true,
+            message: "Subscription confirmed and access granted",
+            data: updateUser
+        });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+export const userController = {
+    confirmUserSubscription,
+    subscribeUser
 }
