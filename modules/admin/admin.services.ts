@@ -175,9 +175,18 @@ const deleteComment = async (commentId: string) => {
         where: { id: commentId },
     });
 }
-
+const addCategory = async (data: { name: string, description: string }) => {
+    const result = await prisma.category.create({
+        data: {
+            name: data.name,
+            description: data.description
+        }
+    })
+    return result
+}
 
 export const adminServices = {
+    addCategory,
     getAllUsers,
     getAllReviews,
     getAllPayments,
