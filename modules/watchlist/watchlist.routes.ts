@@ -5,8 +5,8 @@ import { watchlistController } from "./watchlist.controller";
 
 const router = Router();
 
-// router.get("/", checkAuth(Role.USER), watchlistController.addToWatchlist)
 router.post("/", checkAuth(Role.USER), watchlistController.addToWatchlist)
+router.get("/", checkAuth(Role.USER), watchlistController.getWatchlistByUserId)
 
 
 

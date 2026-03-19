@@ -53,7 +53,35 @@ const addToWatchlist = async (data: WatchlistItem) => {
         throw new AppError("Failed to Add to Watchlist");
     }
 }
-
+const getWatchlistByUserId = async (userId: string) => {
+    try {
+        return await prisma.watchlist.findMany({
+            where: {
+                userId,
+            },
+            include: {
+                movie: {
+                    select: {
+                        title: true,
+                        genre: true,
+                        releaseYear: true,
+                        cast: true,
+                        reviews: {
+                            select: {
+                                rating: true,
+                                tags: true,
+                            },
+                        },
+                        contentType: true,
+                    }
+                },
+            }
+        });
+    } catch (error) {
+        throw new AppError("Failed to fetch watchlist");
+    }
+}
 export const watchlistService = {
     addToWatchlist,
+    getWatchlistByUserId,
 }

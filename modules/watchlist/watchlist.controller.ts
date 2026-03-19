@@ -30,8 +30,35 @@ const addToWatchlist = async (req: Request, res: Response) => {
             );
     }
 }
+const getWatchlistByUserId = async (req: Request, res: Response) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ success: false, message: "Unauthorized", data: null });
+        }
+        const watchlistItems = await watchlistService.getWatchlistByUserId(user.id as string);
 
+        res.status(200).json({
+            success: true,
+            message: "Watchlist retrieved successfully",
+            ok: true,
+            data: watchlistItems
+        })
+
+    } catch (error) {
+        const errorMessage = (error instanceof Error) ? error.message : "Failed to Retrieve Watchlist"
+        res.status(500)
+            .json(
+                {
+                    success: false,
+                    data: null,
+                    error: errorMessage
+                }
+            );
+    }
+}
 
 export const watchlistController = {
     addToWatchlist,
+    getWatchlistByUserId
 }
