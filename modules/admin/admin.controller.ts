@@ -49,6 +49,28 @@ const getTheMovie = async (req: Request, res: Response) => {
             );
     }
 }
+const getAllCategories = async (req: Request, res: Response) => {
+    try {
+        const result = await adminServices.getAllCategories()
+        res.status(200).json({
+            success: true,
+            message: "Categories Retrieved Successfully",
+            ok: true,
+            data: result
+        })
+
+    } catch (error) {
+        const errorMessage = (error instanceof AppError) ? error.message : "Failed to Retrieve Categories"
+        res.status(500)
+            .json(
+                {
+                    success: false,
+                    data: null,
+                    error: errorMessage
+                }
+            );
+    }
+}
 const getAllUsers = async (req: Request, res: Response) => {
     try {
         const result = await adminServices.getAllUsers()
@@ -345,6 +367,7 @@ const deleteComment = async (req: Request, res: Response) => {
 export const adminController = {
     addCategory,
     getTheMovie,
+    getAllCategories,
     getAllUsers,
     getAllReviews,
     getAllPayments,

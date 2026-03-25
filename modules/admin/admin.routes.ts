@@ -12,6 +12,7 @@ router.get("/all-payments", checkAuth(Role.ADMIN), adminController.getAllPayment
 router.get("/all-media", checkAuth(Role.ADMIN), adminController.getAllMedia)
 router.get("/all-comments", checkAuth(Role.ADMIN), adminController.getAllComments)
 router.get("/all-watchlists", checkAuth(Role.ADMIN), adminController.getAllWatchlists)
+router.get("/all-categories", checkAuth(Role.ADMIN), adminController.getAllCategories)
 router.post("/add-category", checkAuth(Role.ADMIN), adminController.addCategory)
 router.patch("/edit-media/:id", checkAuth(Role.ADMIN), adminController.editMedia)
 router.patch("/update-review-status/:id", checkAuth(Role.ADMIN), adminController.updateReviewStatus)

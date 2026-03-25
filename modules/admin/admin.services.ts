@@ -21,7 +21,7 @@ export const getTheMovie = async (id: string) => {
         }
 
         const data = await response.json();
-
+        console.log(data)
         const year = data.release_date ? new Date(data.release_date).getFullYear() : "";
 
         const slug = data.title
@@ -94,6 +94,7 @@ const banUser = async (userId: string, status: UserStatus) => {
         data: { status: UserStatus.BANNED }
     });
 };
+
 
 const deleteUser = async (userId: string) => {
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -244,9 +245,21 @@ const getAllWatchlists = async () => {
     ]);
     return { watchlists, totalWatchlists };
 };
+const getAllCategories = async () => {
+    try {
+        return await prisma.category.findMany({
+            where: {
+                movies: { some: {} }
+            }
+        });
+    } catch (error) {
+        throw new AppError("Error fetching categories");
+    }
+};
 
 export const adminServices = {
     addCategory,
+    getAllCategories,
     getTheMovie,
     getAllUsers,
     getAllReviews,
