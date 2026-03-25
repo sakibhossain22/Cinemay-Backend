@@ -31,8 +31,7 @@ const addToWatchlist = async (data: WatchlistItem) => {
                         cast: true,
                         reviews: {
                             select: {
-                                rating: true,
-                                tags: true,
+                                rating: true
                             },
                         },
                         contentType: true,
@@ -68,8 +67,7 @@ const getWatchlistByUserId = async (userId: string) => {
                         cast: true,
                         reviews: {
                             select: {
-                                rating: true,
-                                tags: true,
+                                rating: true
                             },
                         },
                         contentType: true,

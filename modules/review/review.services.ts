@@ -6,15 +6,15 @@ import { IReview } from "./review.interface"
 
 const addReview = async (reviewData: IReview, userId: string) => {
     try {
-        const { movieId, rating, content, tags } = reviewData
-
+        const { movieId, rating, content, hasSpoiler } = reviewData
+        
         const result = await prisma.review.create({
             data: {
                 movieId,
                 content,
                 rating,
                 userId,
-                tags
+                hasSpoiler
             },
             include: {
                 user: {
@@ -55,7 +55,8 @@ const editReview = async (reviewId: string, reviewData: Partial<IReview>, userId
         }
         const result = await prisma.review.update({
             where: {
-                id: reviewId
+                id: reviewId,
+                // isApproved: false
             },
             data: {
                 rating,
@@ -128,6 +129,7 @@ const getAllReviews = async () => {
 }
 const addLikeInReview = async (reviewId: string, userId: string) => {
     try {
+        console.log(reviewId, userId)
         // ১. চেক করা ইউজার আগে লাইক দিয়েছে কি না
         const existingLike = await prisma.like.findUnique({
             where: {

@@ -93,6 +93,29 @@ const getSeries = async (req: Request, res: Response) => {
             );
     }
 }
+const getAnimation = async (req: Request, res: Response) => {
+    try {
+        const result = await mediaService.getAnimation();
+        res.status(200).json({
+            success: true,
+            message: "Animation Retrieved Successfully",
+            ok: true,
+            data: result
+        })
+
+
+    } catch (error) {
+        const errorMessage = (error instanceof Error) ? error.message : "Failed to Get  Animation"
+        res.status(500)
+            .json(
+                {
+                    success: false,
+                    data: null,
+                    error: errorMessage
+                }
+            );
+    }
+}
 const getMediaById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -124,5 +147,7 @@ export const mediaController = {
     getAllMedia,
     getMovie,
     getSeries,
+    getAnimation,
     getMediaById
+
 }

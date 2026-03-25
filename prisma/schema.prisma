@@ -33,6 +33,7 @@ enum Role {
 enum MediaType {
   MOVIE
   SERIES
+  ANIMATION
 }
 
 enum PurchaseType {
@@ -114,6 +115,7 @@ model Payment {
 
 model Movie {
   id            String      @id @default(uuid())
+  tmdb_id       String      
   title         String
   customid      String?     @unique
   type          MediaType   @default(MOVIE) // MOVIE অথবা SERIES
@@ -124,6 +126,8 @@ model Movie {
   director      String
   cast          String[]
   streamingLink String?
+  downloadLink  String?
+  episodeLinks  String[] // সিরিজের জন্য এপিসোড লিঙ্কের অ্যারে
   contentType   ContentType @default(FREE)
   ratingAverage Float       @default(0.0)
   buyPrice      Float?      @default(0)
@@ -158,7 +162,6 @@ model Review {
   content    String   @db.Text
   isApproved Boolean  @default(false)
   hasSpoiler Boolean  @default(false)
-  tags       String[]
 
   userId  String
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)

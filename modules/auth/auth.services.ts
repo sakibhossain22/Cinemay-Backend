@@ -31,6 +31,8 @@ const register = async (data: RegisterRequest) => {
         let accessTokenGenerated = null;
         if (result?.token) {
             accessTokenGenerated = await tokenUtils.getAccessToken({
+                token: result.token,
+                id: result.user.id,
                 email: result.user.email,
                 emailVerified: result.user.emailVerified,
                 role: (result.user as any).role,
@@ -56,6 +58,8 @@ const login = async (data: ILogin) => {
         let accessTokenGenerated = null;
         if (result?.token) {
             accessTokenGenerated = await tokenUtils.getAccessToken({
+                token: result.token,
+                id: result.user.id,
                 email: result.user.email,
                 emailVerified: result.user.emailVerified,
                 role: result.user.role,

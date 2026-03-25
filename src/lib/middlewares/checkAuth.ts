@@ -23,8 +23,10 @@ const checkAuth = (...role: Role[]) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         // console.log("access Token", req.cookies["accessToken"])
         // console.log("Session Token", req.cookies["better-auth.session_token"])
-        
+
         const authCookie = req.cookies["better-auth.session_token"];
+        // const accessToken = req.cookies["accessToken"];
+
         if (!authCookie) {
             return res.status(401).json({ error: "Unauthorized: No token found" });
         }
