@@ -52,7 +52,6 @@ const subscribeUser = async (req: Request, res: Response) => {
 
         // 1. Create Stripe Payment Intent
         const paymentIntent = await stripeService.createPaymentIntent(price);
-        console.log(paymentIntent);
         if (!paymentIntent) return res.status(500).json({ message: "Failed to create payment intent" });
 
         const newPayment = await prisma.payment.create({

@@ -81,14 +81,12 @@ const getWatchlistByUserId = async (userId: string) => {
 }
 const removeFromWatchlist = async (userId: string, movieId: string) => {
     try {
-        console.log(movieId, userId)
         const existingItem = await prisma.watchlist.findFirst({
             where: {
                 userId,
                 movieId,
             },
         });
-        console.log(existingItem)
         if (!existingItem) {
             throw new AppError("Media not found in watchlist");
         }

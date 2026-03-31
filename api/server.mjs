@@ -153,8 +153,8 @@ var init_auth = __esm({
       database: prismaAdapter(prisma, {
         provider: "postgresql"
       }),
-      trustedOrigins: [process.env.APP_URL || "https://cinemay.vercel.app"],
-      baseURL: process.env.APP_URL || "https://cinemay.vercel.app",
+      trustedOrigins: [process.env.APP_URL || "", "http://localhost:5000"],
+      baseURL: process.env.APP_URL || "",
       emailAndPassword: {
         enabled: true
       },
@@ -176,7 +176,7 @@ var init_auth = __esm({
             }
           },
           state: {
-            name: "better-auth.session_token",
+            name: "better-auth.state_token",
             // Force this exact name
             attributes: {
               httpOnly: true,
@@ -368,7 +368,6 @@ var init_user_controller = __esm({
         );
         if (!user) return res.status(404).json({ message: "User not found" });
         const paymentIntent = await stripeService.createPaymentIntent(price);
-        console.log(paymentIntent);
         if (!paymentIntent) return res.status(500).json({ message: "Failed to create payment intent" });
         const newPayment = await prisma.payment.create({
           data: {
@@ -497,12 +496,10 @@ var init_checkAuth = __esm({
     checkAuth = (...role) => {
       return async (req, res, next) => {
         const authCookie = req.cookies["better-auth.session_token"];
-        console.log("Auth Cookie: ", authCookie);
         if (!authCookie) {
           return res.status(401).json({ error: "Unauthorized: No token found" });
         }
         const token = authCookie.split(".")[0];
-        console.log("authcookie", authCookie);
         const session = await prisma.session.findFirst({
           where: {
             token
@@ -511,9 +508,7 @@ var init_checkAuth = __esm({
             user: true
           }
         });
-        console.log("session ", session);
         if (!session || !session.user) {
-          console.log("session ", session);
           return res.status(401).json({ error: "Unauthorized" });
         }
         req.user = {
@@ -654,14 +649,12 @@ var init_watchlist_services = __esm({
     };
     removeFromWatchlist = async (userId, movieId) => {
       try {
-        console.log(movieId, userId);
         const existingItem = await prisma.watchlist.findFirst({
           where: {
             userId,
             movieId
           }
         });
-        console.log(existingItem);
         if (!existingItem) {
           throw new AppError("Media not found in watchlist");
         }
@@ -926,7 +919,6 @@ var init_review_services = __esm({
     };
     addLikeInReview = async (reviewId, userId) => {
       try {
-        console.log(reviewId, userId);
         const existingLike = await prisma.like.findUnique({
           where: {
             userId_reviewId: {
@@ -1683,7 +1675,6 @@ var init_admin_services = __esm({
       return await prisma.movie.delete({ where: { id: mediaId } });
     };
     addCategory = async (data) => {
-      console.log(data);
       if (!data.name) {
         throw new AppError("Category name is required", 400);
       }
@@ -1693,7 +1684,6 @@ var init_admin_services = __esm({
       const existingCategory = await prisma.category.findUnique({
         where: { name: data.name.toLocaleUpperCase() }
       });
-      console.log(existingCategory);
       if (existingCategory) {
         throw new AppError("Category already exists", 400);
       }
@@ -2773,7 +2763,6 @@ var init_auth_controller = __esm({
     init_token();
     register2 = async (req, res) => {
       try {
-        console.log(req.body);
         const result = await authServices.register(req.body);
         if (result.accessToken) {
           tokenUtils.setBetterAuthAccessTokenCookie(res, result.token);
@@ -3443,7 +3432,6 @@ var init_history_controller = __esm({
           });
         }
         const result = await historyService.trackView(userId, req.body);
-        console.log(result);
         res.status(200).json({
           success: true,
           message: "History Updated Successfully",

@@ -125,8 +125,7 @@ const updateCategory = async (req: Request, res: Response) => {
 const getTheMovie = async (req: Request, res: Response) => {
     try {
         const { id, type } = req.params;
-        // const { type } = req.body;
-        // console.log(id, type)
+
         const result = await adminServices.getTheMovie(id as string, type as 'MOVIE' | 'SERIES')
         res.status(200).json({
             success: true,

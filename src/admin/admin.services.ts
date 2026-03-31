@@ -45,9 +45,7 @@ export const getTheMovie = async (id: string, type: 'MOVIE' | 'SERIES') => {
         throw new AppError("TMDB ID is required", 400);
     }
 
-    // টাইপ অনুযায়ী এন্ডপয়েন্ট সিলেক্ট করা
     const endpoint = type === 'SERIES' ? 'tv' : 'movie';
-    // console.log(type)
     try {
         const response = await fetch(
             `https://api.themoviedb.org/3/${endpoint}/${id}?api_key=${TMDB_API_KEY}&append_to_response=credits`
@@ -59,12 +57,10 @@ export const getTheMovie = async (id: string, type: 'MOVIE' | 'SERIES') => {
 
         const data = await response.json();
 
-        // Movie এর জন্য 'title' এবং 'release_date', Series এর জন্য 'name' এবং 'first_air_date' ব্যবহার হয়
         const title = type === 'SERIES' ? data.name : data.title;
         const releaseDate = type === 'SERIES' ? data.first_air_date : data.release_date;
         const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
-        // Slug এবং CustomID জেনারেট করা
         const slug = title
             .toLowerCase()
             .trim()
@@ -190,7 +186,6 @@ const deleteMedia = async (mediaId: string) => {
 };
 
 const addCategory = async (data: { name: string, description: string }) => {
-    console.log(data)
     if (!data.name) {
         throw new AppError("Category name is required", 400);
     }
@@ -200,7 +195,6 @@ const addCategory = async (data: { name: string, description: string }) => {
     const existingCategory = await prisma.category.findUnique({
         where: { name: data.name.toLocaleUpperCase() }
     });
-    console.log(existingCategory)
     if (existingCategory) {
         throw new AppError("Category already exists", 400);
     }

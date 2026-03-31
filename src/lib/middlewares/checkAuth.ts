@@ -25,17 +25,11 @@ const checkAuth = (...role: Role[]) => {
 
 
         const authCookie = req.cookies["better-auth.session_token"];
-        console.log("Auth Cookie: ", authCookie);
         if (!authCookie) {
             return res.status(401).json({ error: "Unauthorized: No token found" });
         }
         const token = authCookie.split(".")[0];
 
-        console.log("authcookie", authCookie)
-        // const sessions = await auth.api.getSession({
-        //     headers: new Headers(req.headers as any),
-
-        // })
         const session = await prisma.session.findFirst({
             where: {
                 token: token,
@@ -44,10 +38,8 @@ const checkAuth = (...role: Role[]) => {
                 user: true
             }
         });
-        console.log("session ", session)
 
         if (!session || !session.user) {
-            console.log("session ", session)
 
             return res.status(401).json({ error: "Unauthorized" });
         }

@@ -13,7 +13,6 @@ const trackView = async (req: Request, res: Response) => {
             });
         }
         const result = await historyService.trackView(userId, req.body);
-        console.log(result)
         res.status(200).json({
             success: true,
             message: "History Updated Successfully",

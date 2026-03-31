@@ -5,11 +5,8 @@ import { cookieFunc } from "../utils/cookie";
 
 const register = async (req: Request, res: Response) => {
     try {
-        console.log(req.body)
-        // Here you would typically call your authentication service to register the user
         const result = await authServices.register(req.body);
         if (result.accessToken) {
-            // Set the access token in a cookie
             tokenUtils.setBetterAuthAccessTokenCookie(res, result.token as string);
         }
         if (result.accessToken) {

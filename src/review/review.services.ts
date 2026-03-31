@@ -142,8 +142,6 @@ const getAllReviews = async (userId: string) => {
 }
 const addLikeInReview = async (reviewId: string, userId: string) => {
     try {
-        console.log(reviewId, userId)
-        // ১. চেক করা ইউজার আগে লাইক দিয়েছে কি না
         const existingLike = await prisma.like.findUnique({
             where: {
                 userId_reviewId: {
@@ -155,7 +153,6 @@ const addLikeInReview = async (reviewId: string, userId: string) => {
 
         return await prisma.$transaction(async (tx) => {
             if (existingLike) {
-                // ২. যদি আগে লাইক থাকে -> ডিলিট করো (Unlike)
                 await tx.like.delete({
                     where: {
                         id: existingLike.id,
