@@ -21,32 +21,35 @@ declare global {
 
 const checkAuth = (...role: Role[]) => {
     return async (req: Request, res: Response, next: NextFunction) => {
-        // console.log("access Token", req.cookies["accessToken"])
-        // console.log("Session Token", req.cookies["better-auth.session_token"])
+
 
         const authCookie = req.cookies["better-auth.session_token"];
-        // const accessToken = req.cookies["accessToken"];
-
+        console.log("Auth Cookie: ", authCookie);
         if (!authCookie) {
             return res.status(401).json({ error: "Unauthorized: No token found" });
         }
+        const token = authCookie.split(".")[0];
+
+        console.log("authcookie", authCookie)
         // const sessions = await auth.api.getSession({
         //     headers: new Headers(req.headers as any),
 
         // })
         const session = await prisma.session.findFirst({
             where: {
-                token: authCookie,
+                token: token,
             },
             include: {
                 user: true
             }
         });
+        console.log("session ", session)
+
         if (!session || !session.user) {
+            console.log("session ", session)
+
             return res.status(401).json({ error: "Unauthorized" });
         }
-
-        // রিকোয়েস্ট অবজেক্টে ইউজার ডাটা সেট করা
         req.user = {
             id: session.user.id,
             email: session.user.email,
@@ -54,7 +57,7 @@ const checkAuth = (...role: Role[]) => {
             role: session.user.role,
             emailVerified: session.user.emailVerified,
             status: session.user.status as string,
-            isPremium: session.user.isPremium // এখন আর এরর দিবে না
+            isPremium: session.user.isPremium 
         };
 
         // রোল চেক করা

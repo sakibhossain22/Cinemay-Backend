@@ -47,17 +47,17 @@ enum UserStatus {
 }
 
 model User {
-  id               String      @id @default(uuid())
+  id               String        @id @default(uuid())
   name             String
   email            String
-  emailVerified    Boolean     @default(false)
+  emailVerified    Boolean       @default(false)
   image            String?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  role             Role        @default(USER)
-  status           UserStatus? @default(ACTIVE)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  role             Role          @default(USER)
+  status           UserStatus?   @default(ACTIVE)
   phone            String?
-  isPremium        Boolean     @default(false)
+  isPremium        Boolean       @default(false)
   resetCode        Int? // ৬ ডিজিটের কোড এখানে সেভ হবে
   resetCodeExpires DateTime?
   sessions         Session[]
@@ -69,9 +69,22 @@ model User {
   payments         Payment[]
   likes            Like[]
   comments         Comment[]
+  viewHistories    ViewHistory[]
 
   @@unique([email])
   @@map("user")
+}
+
+model ViewHistory {
+  id       String   @id @default(uuid())
+  userId   String
+  mediaId  String
+  viewedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media Movie @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mediaId]) 
 }
 
 model Purchase {
@@ -114,12 +127,12 @@ model Payment {
 // --- Movie Portal Specific Models ---
 
 model Movie {
-  id            String      @id @default(uuid())
-  tmdb_id       String      
+  id            String        @id @default(uuid())
+  tmdb_id       String
   title         String
-  customid      String?     @unique
-  type          MediaType   @default(MOVIE) // MOVIE অথবা SERIES
-  synopsis      String      @db.Text
+  customid      String?       @unique
+  type          MediaType     @default(MOVIE) // MOVIE অথবা SERIES
+  synopsis      String        @db.Text
   posterUrl     String?
   genre         String[]
   releaseYear   Int
@@ -128,20 +141,20 @@ model Movie {
   streamingLink String?
   downloadLink  String?
   episodeLinks  String[] // সিরিজের জন্য এপিসোড লিঙ্কের অ্যারে
-  contentType   ContentType @default(FREE)
-  ratingAverage Float       @default(0.0)
-  buyPrice      Float?      @default(0)
-  rentPrice     Float?      @default(0)
-  rentDuration  Int?        @default(48) // কত ঘণ্টার জন্য রেন্ট (যেমন: ৪৮ ঘণ্টা)
+  contentType   ContentType   @default(FREE)
+  ratingAverage Float         @default(0.0)
+  buyPrice      Float?        @default(0)
+  rentPrice     Float?        @default(0)
+  rentDuration  Int?          @default(48) // কত ঘণ্টার জন্য রেন্ট (যেমন: ৪৮ ঘণ্টা)
   // রিলেশনশিপস
   reviews       Review[]
   watchlists    Watchlist[]
   // ক্যাটাগরি বা কালেকশনের জন্য (যেমন: Trending, Oscars Winner)
-  categories    Category[]  @relation("MovieCategories")
-
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  purchases Purchase[]
+  categories    Category[]    @relation("MovieCategories")
+  viewHistories ViewHistory[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  purchases     Purchase[]
 
   @@map("movie")
 }
@@ -149,7 +162,7 @@ model Movie {
 // নতুন মডেল: ক্যাটাগরি বা কালেকশন ম্যানেজমেন্টের জন্য
 model Category {
   id          String  @id @default(uuid())
-  name        String  @unique // যেমন: "Trending", "Editors Pick", "Award Winning"
+  name        String  @unique
   description String?
   movies      Movie[] @relation("MovieCategories")
 
@@ -157,11 +170,11 @@ model Category {
 }
 
 model Review {
-  id         String   @id @default(uuid())
+  id         String  @id @default(uuid())
   rating     Int // 1-10
-  content    String   @db.Text
-  isApproved Boolean  @default(false)
-  hasSpoiler Boolean  @default(false)
+  content    String  @db.Text
+  isApproved Boolean @default(false)
+  hasSpoiler Boolean @default(false)
 
   userId  String
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
