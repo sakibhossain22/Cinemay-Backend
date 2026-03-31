@@ -14,6 +14,7 @@ declare global {
                 emailVerified: boolean;
                 status: string;
                 isPremium: boolean;
+                sessionToken: string;
             };
         }
     }
@@ -57,7 +58,8 @@ const checkAuth = (...role: Role[]) => {
             role: session.user.role,
             emailVerified: session.user.emailVerified,
             status: session.user.status as string,
-            isPremium: session.user.isPremium 
+            isPremium: session.user.isPremium,
+            sessionToken: session.token
         };
 
         // রোল চেক করা

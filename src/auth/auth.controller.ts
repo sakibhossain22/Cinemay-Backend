@@ -1,6 +1,7 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import { authServices } from "./auth.services";
 import { tokenUtils } from "../utils/token";
+import { cookieFunc } from "../utils/cookie";
 
 const register = async (req: Request, res: Response) => {
     try {
@@ -115,10 +116,49 @@ const googleLogin = async (req: Request, res: Response) => {
         });
     }
 };
+const logout = async (req: Request, res: Response) => {
+    try {
+        const sessionToken = req.cookies["better-auth.session_token"];
+        const accessToken = req.cookies["accessToken"];
+
+        if (sessionToken) {
+            await authServices.logOut(sessionToken);
+        }
+
+        const cookieOptions = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none" as const,
+            maxAge: 0,
+            path: "/"
+        };
+
+        res.clearCookie("better-auth.session_token", cookieOptions);
+
+        if (accessToken) {
+            res.clearCookie("accessToken", cookieOptions);
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "User logged out successfully",
+            ok: true
+        });
+    }
+    catch (error) {
+        const errorMessage = (error instanceof Error) ? error.message : "Failed to Logout User";
+        res.status(500).json({
+            success: false,
+            data: null,
+            error: errorMessage
+        });
+    }
+}
 export const authController = {
     register,
     login,
     forgotPassword,
     resetPassword,
+    logout,
     googleLogin
 }

@@ -177,11 +177,23 @@ const verifyCodeAndResetPassword = async (email: string, code: number, newPasswo
         data: result
     };
 };
-
+const logOut = async (sessionToken: string) => {
+    try {
+        const res = await auth.api.signOut({
+            headers: new Headers({
+                Authorization: `Bearer ${sessionToken}`
+            })
+        });
+        return res;
+    } catch (error) {
+        throw error;
+    }
+}
 export const authServices = {
     register,
     login,
     verifyCodeAndResetPassword,
     sendResetCode,
-    googleLogin
+    googleLogin,
+    logOut
 }

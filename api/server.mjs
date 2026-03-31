@@ -153,33 +153,36 @@ var init_auth = __esm({
       database: prismaAdapter(prisma, {
         provider: "postgresql"
       }),
-      // আপনার ফ্রন্টেন্ড ডোমেইন এখানে দিন
       trustedOrigins: [process.env.APP_URL || "https://cinemay.vercel.app"],
-      // baseURL অবশ্যই ব্যাকেন্ডের ডোমেইন হতে হবে যদি আলাদা হয়
-      baseURL: process.env.BACKEND_URL || "https://cinemay-server.vercel.app",
+      baseURL: process.env.APP_URL || "https://cinemay.vercel.app",
       emailAndPassword: {
         enabled: true
       },
+      // advanced: {
+      //     cookiePrefix: "better-auth",
+      //     useSecureCookies: false,
+      //     crossSiteAndSafeCookie: true,
+      // },
       advanced: {
         cookies: {
-          // সেশন টোকেনের কনফিগারেশন
           session_token: {
             name: "better-auth.session_token",
+            // Force this exact name
             attributes: {
               httpOnly: true,
               secure: true,
-              sameSite: "none"
-              // ক্রস-ডোমেইন সাপোর্ট করার জন্য
+              sameSite: "none",
+              partitioned: true
             }
           },
-          // স্টেট কুকির নাম আলাদা হতে হবে!
           state: {
-            name: "better-auth.state",
-            // এটি পরিবর্তন করুন
+            name: "better-auth.session_token",
+            // Force this exact name
             attributes: {
               httpOnly: true,
               secure: true,
-              sameSite: "none"
+              sameSite: "none",
+              partitioned: true
             }
           }
         }
@@ -520,7 +523,8 @@ var init_checkAuth = __esm({
           role: session.user.role,
           emailVerified: session.user.emailVerified,
           status: session.user.status,
-          isPremium: session.user.isPremium
+          isPremium: session.user.isPremium,
+          sessionToken: session.token
         };
         if (role.length > 0 && (!req.user.role || !role.includes(req.user.role))) {
           return res.status(403).json({ error: "Forbidden: You don't have permission" });
@@ -2593,7 +2597,7 @@ var init_token = __esm({
 
 // src/auth/auth.services.ts
 import { hashPassword } from "better-auth/crypto";
-var register, login, googleLogin, sendResetCode, verifyCodeAndResetPassword, authServices;
+var register, login, googleLogin, sendResetCode, verifyCodeAndResetPassword, logOut, authServices;
 var init_auth_services = __esm({
   "src/auth/auth.services.ts"() {
     "use strict";
@@ -2737,18 +2741,31 @@ var init_auth_services = __esm({
         data: result
       };
     };
+    logOut = async (sessionToken) => {
+      try {
+        const res = await auth.api.signOut({
+          headers: new Headers({
+            Authorization: `Bearer ${sessionToken}`
+          })
+        });
+        return res;
+      } catch (error) {
+        throw error;
+      }
+    };
     authServices = {
       register,
       login,
       verifyCodeAndResetPassword,
       sendResetCode,
-      googleLogin
+      googleLogin,
+      logOut
     };
   }
 });
 
 // src/auth/auth.controller.ts
-var register2, login2, forgotPassword, resetPassword, googleLogin2, authController;
+var register2, login2, forgotPassword, resetPassword, googleLogin2, logout, authController;
 var init_auth_controller = __esm({
   "src/auth/auth.controller.ts"() {
     "use strict";
@@ -2843,11 +2860,44 @@ var init_auth_controller = __esm({
         });
       }
     };
+    logout = async (req, res) => {
+      try {
+        const sessionToken = req.cookies["better-auth.session_token"];
+        const accessToken = req.cookies["accessToken"];
+        if (sessionToken) {
+          await authServices.logOut(sessionToken);
+        }
+        const cookieOptions = {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+          maxAge: 0,
+          path: "/"
+        };
+        res.clearCookie("better-auth.session_token", cookieOptions);
+        if (accessToken) {
+          res.clearCookie("accessToken", cookieOptions);
+        }
+        res.status(200).json({
+          success: true,
+          message: "User logged out successfully",
+          ok: true
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to Logout User";
+        res.status(500).json({
+          success: false,
+          data: null,
+          error: errorMessage
+        });
+      }
+    };
     authController = {
       register: register2,
       login: login2,
       forgotPassword,
       resetPassword,
+      logout,
       googleLogin: googleLogin2
     };
   }
@@ -2860,11 +2910,14 @@ var init_auth_routes = __esm({
   "src/auth/auth.routes.ts"() {
     "use strict";
     init_auth_controller();
+    init_checkAuth();
+    init_enums();
     router7 = Router7();
     router7.post("/register", authController.register);
     router7.post("/login", authController.login);
     router7.post("/forgot-password", authController.forgotPassword);
     router7.post("/reset-password", authController.resetPassword);
+    router7.post("/logout", checkAuth_default(Role.ADMIN, Role.USER), authController.logout);
     authRoutes = router7;
   }
 });
