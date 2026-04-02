@@ -240,7 +240,7 @@ const getAllReviews = async () => {
         prisma.review.findMany({
             include: {
                 user: { select: { name: true, image: true } },
-                movie: { select: { title: true } }
+                movie: { select: { title: true, customid : true } }
             },
             orderBy: { createdAt: 'desc' }
         }),

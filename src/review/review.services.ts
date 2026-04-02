@@ -8,7 +8,14 @@ import { UserStatus } from "../../generated/prisma/enums"
 const addReview = async (reviewData: IReview, userId: string) => {
     try {
         const { movieId, rating, content, hasSpoiler } = reviewData
-
+        const findUser = await prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+        if (findUser?.status === UserStatus.BANNED) {
+            throw new AppError("Banned User Can't add comment")
+        }
         const result = await prisma.review.create({
             data: {
                 movieId,
@@ -131,6 +138,7 @@ const getAllReviews = async (userId: string) => {
                         releaseYear: true,
                         cast: true,
                         type: true,
+                        customid: true
                     }
                 }
             }
