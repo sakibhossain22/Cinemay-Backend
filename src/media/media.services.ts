@@ -2,14 +2,11 @@ import { IMovie, IQuery } from "./media.interface";
 import { prisma } from "../lib/prisma";
 import { ContentType, MediaType } from "../../generated/prisma/enums";
 
-// ১. মিডিয়া অ্যাড করা (Category সহ)
 const addMedia = async (movie: IMovie) => {
     try {
-        // ১. category এবং অন্যান্য ফিল্ডগুলো আলাদা করুন
-        // নিশ্চিত করুন আপনার IMovie ইন্টারফেসে category নামে স্ট্রিং অ্যারে আছে
+
         const { category, customId, tmdb_id, ...movieData } = movie;
 
-        // Custom ID (Slug) Generation
         let generatedCustomId = customId || movie.title
             .toLowerCase()
             .trim()
@@ -25,7 +22,6 @@ const addMedia = async (movie: IMovie) => {
             generatedCustomId = `${generatedCustomId}-${Math.floor(100 + Math.random() * 900)}`;
         }
 
-        // ২. ক্যাটাগরিগুলোকে ম্যাপ করুন (Empty array safety সহ)
         const categoryConnection = Array.isArray(category)
             ? category.map((catName: string) => ({
                 where: { name: catName.toUpperCase().trim() },
@@ -56,7 +52,6 @@ const addMedia = async (movie: IMovie) => {
     }
 };
 
-// ২. সব মিডিয়া গেট করা (Filter & Category সহ)
 const getAllMedia = async (query: IQuery) => {
     try {
         const {
@@ -77,28 +72,21 @@ const getAllMedia = async (query: IQuery) => {
 
         const andConditions: any[] = [];
 
-        // ১. বেসিক ফিল্টার
         if (type) andConditions.push({ type: type as any });
         if (genre) andConditions.push({ genre: { has: genre } });
         if (releaseYear) andConditions.push({ releaseYear: parseInt(releaseYear as string) });
         if (rating) andConditions.push({ ratingAverage: { gte: parseFloat(rating as string) } });
 
-        // ২. Is Premium Filter (নতুন যোগ করা হয়েছে)
-        // ধরুন আপনার ডাটাবেসে contentType ফিল্ডে 'PREMIUM' বা 'FREE' থাকে
-        // query object থেকে isPremium স্ট্রিং বা বুলিয়ান যাই আসুক
         if (isPremium !== undefined) {
-            // স্ট্রিং বা বুলিয়ান উভয়কেই চেক করার একটি সেফ উপায়
             const isPremiumValue = String(isPremium).toLowerCase() === 'true';
 
             if (isPremiumValue) {
                 andConditions.push({ contentType: ContentType.PREMIUM });
             } else {
-                // যদি explicitly false পাঠানো হয়, তবে শুধু FREE দেখাবে
                 andConditions.push({ contentType: ContentType.FREE });
             }
         }
 
-        // ৩. ক্যাটাগরি ফিল্টার
         if (category) {
             andConditions.push({
                 categories: {
@@ -111,7 +99,6 @@ const getAllMedia = async (query: IQuery) => {
             });
         }
 
-        // ৪. সার্চ টার্ম
         if (searchTerm) {
             andConditions.push({
                 OR: [
@@ -124,8 +111,7 @@ const getAllMedia = async (query: IQuery) => {
 
         const whereCondition = andConditions.length > 0 ? { AND: andConditions } : {};
 
-        // ৫. Dynamic Sorting Logic (Price High/Low)
-        let orderBy: any = { createdAt: "desc" }; // ডিফল্ট সর্টিং
+        let orderBy: any = { createdAt: "desc" }; 
 
         if (sortBy === 'priceLow') {
             orderBy = { buyPrice: 'asc' };
@@ -137,13 +123,12 @@ const getAllMedia = async (query: IQuery) => {
             orderBy = { ratingAverage: 'desc' };
         }
 
-        // ডাটা ফেচিং
         const [data, total] = await prisma.$transaction([
             prisma.movie.findMany({
                 where: whereCondition,
                 skip,
                 take,
-                orderBy: orderBy, // এখানে ডাইনামিক সর্টিং কাজ করবে
+                orderBy: orderBy, 
                 include: { categories: true, reviews: true }
             }),
             prisma.movie.count({ where: whereCondition })
@@ -163,7 +148,6 @@ const getAllMedia = async (query: IQuery) => {
         throw new Error("Failed to Get Filtered Media");
     }
 }
-// ৩. মুভি লিস্ট (ক্যাটাগরি অপশনাল)
 const getMovie = async (categoryName?: string) => {
     try {
         return await prisma.movie.findMany({
@@ -181,12 +165,11 @@ const getMovie = async (categoryName?: string) => {
     }
 };
 
-// ৪. সিরিজ লিস্ট (ক্যাটাগরি অপশনাল)
 const getSeries = async (categoryName?: string) => {
     try {
         return await prisma.movie.findMany({
             where: {
-                type: MediaType.SERIES, // আপনার এনুম অনুযায়ী TV_SHOW বা SERIES চেক করুন
+                type: MediaType.SERIES, 
                 ...(categoryName && {
                     categories: { some: { name: { contains: categoryName, mode: "insensitive" } } }
                 })
@@ -199,7 +182,6 @@ const getSeries = async (categoryName?: string) => {
     }
 };
 
-// ৫. অ্যানিমেশন লিস্ট
 const getAnimation = async (categoryName?: string) => {
     try {
         return await prisma.movie.findMany({
@@ -216,7 +198,6 @@ const getAnimation = async (categoryName?: string) => {
     }
 };
 
-// ৬. আইডি দিয়ে ডিটেইলস (ক্যাটাগরি সহ)
 const getMediaById = async (customid: string) => {
     try {
         return await prisma.movie.findUnique({

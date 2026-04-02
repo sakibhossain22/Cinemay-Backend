@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const createPaymentIntent = async (amount: number, currency: string = "usd") => {
     return await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Stripe takes amount in cents
+        amount: Math.round(amount * 100), 
         currency,
         payment_method_types: ["card"],
         

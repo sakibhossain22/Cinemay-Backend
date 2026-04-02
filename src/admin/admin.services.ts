@@ -4,14 +4,13 @@ import { prisma } from "../lib/prisma";
 import { AdminMediaInput } from "./admin.interface";
 
 const bulkAddMedia = async (payload: any[]) => {
-    // map ব্যবহার করে প্রতিটি মুভির জন্য একটি করে create অপারেশন তৈরি করা হচ্ছে
     const operations = payload.map((item) => {
         return prisma.movie.create({
             data: {
                 tmdb_id: item.tmdb_id,
                 title: item.title,
                 customid: item.customid,
-                type: item.type, // 'MOVIE' or 'SERIES'
+                type: item.type,
                 synopsis: item.synopsis,
                 posterUrl: item.posterUrl,
                 genre: item.genre,
@@ -26,7 +25,6 @@ const bulkAddMedia = async (payload: any[]) => {
                 buyPrice: item.buyPrice,
                 rentPrice: item.rentPrice,
                 rentDuration: item.rentDuration,
-                // ক্যাটাগরি কানেক্ট করার লজিক
                 categories: {
                     connect: item.categories?.map((catName: string) => ({ name: catName })) || []
                 }
@@ -34,7 +32,6 @@ const bulkAddMedia = async (payload: any[]) => {
         });
     });
 
-    // সকল অপারেশন একবারে ট্রানজ্যাকশনের মাধ্যমে ডাটাবেসে পাঠানো হচ্ছে
     const results = await prisma.$transaction(operations);
     return results;
 };
@@ -74,12 +71,11 @@ export const getTheMovie = async (id: string, type: 'MOVIE' | 'SERIES') => {
             tmdb_id: data.id.toString(),
             title: title,
             customid: customid,
-            type: type, // MOVIE অথবা SERIES
+            type: type, 
             synopsis: data.overview,
             posterUrl: data.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_face${data.poster_path}` : null,
             releaseYear: year,
             genre: data.genres?.map((g: any) => g.name).slice(0, 3) || [],
-            // Series এর ক্ষেত্রে সাধারণত 'Created By' থাকে, Movie এর ক্ষেত্রে 'Director'
             director: type === 'SERIES'
                 ? (data.created_by?.[0]?.name || "N/A")
                 : (data.credits?.crew?.find((c: any) => c.job === "Director")?.name || "Unknown"),
@@ -284,7 +280,7 @@ const deleteReview = async (reviewId: string) => {
 const getAllComments = async () => {
     const [comments, totalComments] = await Promise.all([
         prisma.comment.findMany({
-            where: { parentId: null }, // শুধু মেইন কমেন্টগুলো আনবে (Top-level)
+            where: { parentId: null },
             include: {
                 user: { select: { name: true, image: true } },
                 review: { include: { movie: { select: { title: true } } } },
@@ -340,13 +336,11 @@ const getAdminDashboardStats = async () => {
     try {
         const now = new Date();
 
-        // টাইম ক্যালকুলেশন (Growth ও চার্টের জন্য)
         const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        // ১. প্রিজমা ট্রানজ্যাকশন - একবারে সব ডাটা ফেচ করার জন্য
         const [
             totalUsers,
             totalMovies,
@@ -362,7 +356,6 @@ const getAdminDashboardStats = async () => {
             deviceStats,
             recentPayments
         ] = await prisma.$transaction([
-            // বেসিক কাউন্টস
             prisma.user.count(),
             prisma.movie.count(),
             prisma.review.count(),
@@ -370,13 +363,11 @@ const getAdminDashboardStats = async () => {
             prisma.purchase.count(),
             prisma.watchlist.count(),
 
-            // বর্তমান মাসের রেভিনিউ
             prisma.payment.aggregate({
                 where: { status: 'SUCCESS', createdAt: { gte: firstDayOfMonth } },
                 _sum: { amount: true }
             }),
 
-            // গত মাসের রেভিনিউ
             prisma.payment.aggregate({
                 where: {
                     status: 'SUCCESS',
@@ -385,7 +376,6 @@ const getAdminDashboardStats = async () => {
                 _sum: { amount: true }
             }),
 
-            // কন্টেন্ট ডিস্ট্রিবিউশন (Fix: _all এর বদলে নির্দিষ্ট ফিল্ড কাউন্ট)
             prisma.movie.groupBy({
                 by: ['type'],
                 _count: {
@@ -394,7 +384,6 @@ const getAdminDashboardStats = async () => {
                 orderBy: { type: 'asc' }
             }),
 
-            // Top 5 Most Profitable Movies (Fix: _all এর বদলে movieId কাউন্ট)
             prisma.purchase.groupBy({
                 by: ['movieId'],
                 _sum: { amount: true },
@@ -405,7 +394,6 @@ const getAdminDashboardStats = async () => {
                 take: 5,
             }),
 
-            // একটিভ রেন্টাল কাউন্ট
             prisma.purchase.count({
                 where: {
                     type: 'RENT',
@@ -413,7 +401,6 @@ const getAdminDashboardStats = async () => {
                 }
             }),
 
-            // ডিভাইস স্ট্যাটস (userAgent এর ওপর ভিত্তি করে)
             prisma.session.groupBy({
                 by: ['userAgent'],
                 _count: {
@@ -423,7 +410,6 @@ const getAdminDashboardStats = async () => {
                 orderBy: { _count: { userAgent: 'desc' } }
             }),
 
-            // রিসেন্ট ৫টি পেমেন্ট অ্যাক্টিভিটি
             prisma.payment.findMany({
                 take: 5,
                 orderBy: { createdAt: 'desc' },
@@ -431,7 +417,6 @@ const getAdminDashboardStats = async () => {
             })
         ]);
 
-        // ২. টপ মুভিগুলোর ডিটেইলস ফরম্যাট করা (as any দিয়ে টাইপ ফিক্স করা হয়েছে)
         const topMoviesFormatted = await Promise.all(
             topRevenueMovies.map(async (item: any) => {
                 const movie = await prisma.movie.findUnique({
@@ -448,7 +433,6 @@ const getAdminDashboardStats = async () => {
             })
         );
 
-        // ৩. রেভিনিউ গ্রোথ ক্যালকুলেশন
         const currentRev = currentMonthRevenueData._sum?.amount ?? 0;
         const lastRev = lastMonthRevenueData._sum?.amount ?? 0;
         let growthRate = "0.00";
@@ -459,14 +443,12 @@ const getAdminDashboardStats = async () => {
             growthRate = "100.00";
         }
 
-        // ৪. গত ৭ দিনের সেলস ডাটা (Charts এর জন্য)
         const salesDataRaw = await prisma.purchase.findMany({
             where: { createdAt: { gte: sevenDaysAgo } },
             select: { createdAt: true, amount: true },
             orderBy: { createdAt: 'asc' }
         });
 
-        // ৫. প্রিমিয়াম ইউজার কাউন্ট
         const premiumUsers = await prisma.user.count({ where: { isPremium: true } });
 
         return {

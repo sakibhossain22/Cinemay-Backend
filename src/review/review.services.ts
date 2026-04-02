@@ -167,7 +167,6 @@ const addLikeInReview = async (reviewId: string, userId: string) => {
                     },
                 });
 
-                // ৩. রিভিউর মোট লাইক সংখ্যা কমাও
                 const updatedReview = await tx.review.update({
                     where: { id: reviewId },
                     data: {
@@ -183,7 +182,6 @@ const addLikeInReview = async (reviewId: string, userId: string) => {
                     totalLikes: updatedReview.likeCount
                 };
             } else {
-                // ৪. যদি লাইক না থাকে -> নতুন লাইক তৈরি করো
                 await tx.like.create({
                     data: {
                         reviewId,
@@ -191,7 +189,6 @@ const addLikeInReview = async (reviewId: string, userId: string) => {
                     },
                 });
 
-                // ৫. রিভিউর মোট লাইক সংখ্যা বাড়াও
                 const updatedReview = await tx.review.update({
                     where: { id: reviewId },
                     data: {

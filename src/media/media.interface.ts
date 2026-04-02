@@ -15,7 +15,7 @@ export interface IMovie {
   cast: string[];
   streamingLink?: string | null;
   downloadLink?: string | null;
-  episodeLinks?: string[]; // সিরিজের জন্য এপিসোড লিঙ্কের অ্যারে
+  episodeLinks?: string[]; 
   contentType: ContentType;
   ratingAverage: number;
   buyPrice?: number | null;

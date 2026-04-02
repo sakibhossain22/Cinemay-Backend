@@ -81,22 +81,10 @@ const resetPassword = async (req: Request, res: Response) => {
 };
 const googleLogin = async (req: Request, res: Response) => {
     try {
-        // ১. সার্ভিস থেকে সোশ্যাল লগইন প্রসেস করা
-        // নোট: এখানে req.body তে 'provider': 'google' থাকতে পারে
+
         const result = await authServices.googleLogin();
 
-        // ২. টোকেন চেক এবং কুকি সেট করা
-        // Better Auth এর অরিজিনাল টোকেন কুকি সেট করা
-        // if (result?.token) {
-        //     tokenUtils.setBetterAuthAccessTokenCookie(res, result.token as string);
-        // }
 
-        // // আপনার কাস্টম জেনারেটেড এক্সেস টোকেন কুকি সেট করা
-        // if (result?.accessToken) {
-        //     tokenUtils.setAccessTokenCookie(res, result.accessToken as string);
-        // }
-
-        // ৩. সাকসেস রেসপন্স
         res.status(200).json({
             success: true,
             message: "User logged in with Google successfully",

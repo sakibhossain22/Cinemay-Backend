@@ -9,11 +9,11 @@ const createComment = async (data: ICreateComment) => {
                 content: data.content,
                 userId: data.userId,
                 reviewId: data.reviewId,
-                parentId: data.parentId || null, // যদি রিপ্লাই হয় তবে parentId থাকবে
+                parentId: data.parentId || null,
             },
             include: {
                 user: {
-                    select: { name: true, image: true } // ইউজারের নাম ও ছবিসহ রিটার্ন করবে
+                    select: { name: true, image: true } 
                 }
             }
         });
@@ -27,7 +27,7 @@ const getCommentsByReview = async (reviewId: string) => {
     return await prisma.comment.findMany({
         where: {
             reviewId,
-            parentId: null // শুধু মেইন কমেন্টগুলো আগে আনবে
+            parentId: null
         },
         include: {
             user: { select: { name: true, image: true } },

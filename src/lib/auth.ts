@@ -14,15 +14,11 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  // advanced: {
-  //     cookiePrefix: "better-auth",
-  //     useSecureCookies: false,
-  //     crossSiteAndSafeCookie: true,
-  // },
+
   advanced: {
     cookies: {
       session_token: {
-        name: "better-auth.session_token", // Force this exact name
+        name: "better-auth.session_token", 
         attributes: {
           httpOnly: true,
           secure: true,
@@ -31,7 +27,7 @@ export const auth = betterAuth({
         },
       },
       state: {
-        name: "better-auth.state_token", // Force this exact name
+        name: "better-auth.state_token", 
         attributes: {
           httpOnly: true,
           secure: true,

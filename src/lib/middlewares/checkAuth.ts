@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { Role } from "../../../generated/prisma/enums";
 import { prisma } from "../prisma";
 
-// Express Request Interface এক্সটেন্ড করা
 declare global {
     namespace Express {
         interface Request {
@@ -54,7 +53,6 @@ const checkAuth = (...role: Role[]) => {
             sessionToken: session.token
         };
 
-        // রোল চেক করা
         if (role.length > 0 && (!req.user.role || !role.includes(req.user.role as Role))) {
             return res.status(403).json({ error: "Forbidden: You don't have permission" });
         }

@@ -35,7 +35,7 @@ const createPurchase = async (userId: string, movieId: string, type: PurchaseTyp
     let expiresAt: Date | null = null;
 
     if (type === "RENT") {
-        const duration = movie.rentDuration || 48; // Fallback to 48 if rentDuration is null
+        const duration = movie.rentDuration || 48;
         expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + Number(duration));
     }
@@ -46,7 +46,7 @@ const createPurchase = async (userId: string, movieId: string, type: PurchaseTyp
             movieId,
             type,
             amount: amount || 0,
-            expiresAt: expiresAt // explicit mapping
+            expiresAt: expiresAt 
 
         },
         include: {
@@ -67,7 +67,7 @@ const createPurchase = async (userId: string, movieId: string, type: PurchaseTyp
 };
 
 const getUserPurchases = async (userId: string) => {
-    const now = new Date(); // বর্তমান সময়
+    const now = new Date(); 
 
     const movies = await prisma.purchase.findMany({
         where: {

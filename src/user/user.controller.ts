@@ -50,7 +50,6 @@ const subscribeUser = async (req: Request, res: Response) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
 
-        // 1. Create Stripe Payment Intent
         const paymentIntent = await stripeService.createPaymentIntent(price);
         if (!paymentIntent) return res.status(500).json({ message: "Failed to create payment intent" });
 

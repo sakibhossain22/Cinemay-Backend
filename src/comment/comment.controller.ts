@@ -39,7 +39,6 @@ const getCommentsByReview = async (req: Request, res: Response) => {
             });
         }
 
-        // সার্ভিস থেকে ডাটা নিয়ে আসা
         const comments = await commentServices.getCommentsByReview(reviewId as string);
 
         return res.status(200).json({
@@ -69,7 +68,6 @@ const deleteCommentById = async (req: Request, res: Response) => {
             });
         }
 
-        // সার্ভিস থেকে ডাটা নিয়ে আসা
         const comment = await commentServices.deleteCommentById(commentId as string, userId! as string);
 
         return res.status(200).json({

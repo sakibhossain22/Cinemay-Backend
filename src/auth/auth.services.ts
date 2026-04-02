@@ -75,28 +75,15 @@ const login = async (data: ILogin) => {
 }
 const googleLogin = async () => {
     try {
-        // Better Auth এর social sign in API কল
         const result = await auth.api.signInSocial({
             body: {
                 provider: "google",
-                // callbackURL: "http://localhost:3000/dashboard" // অপশনাল: লগইন শেষে কোথায় যাবে
             }
         });
 
         let accessTokenGenerated = null;
 
-        // সোশ্যাল লগইন সাকসেস হলে এবং টোকেন থাকলে
-        // if (result?.token && result?.user) {
-        //     accessTokenGenerated = await tokenUtils.getAccessToken({
-        //         token: result.token,
-        //         id: result.user.id,
-        //         email: result.user.email,
-        //         emailVerified: result.user.emailVerified,
-        //         role: result.user.role,
-        //         status: result.user.status,
-        //         isPremium: result.user.isPremium
-        //     });
-        // }
+
 
         return { ...result, accessToken: accessTokenGenerated };
     } catch (error) {
@@ -110,9 +97,8 @@ const sendResetCode = async (email: string) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) throw new Error("User not found");
 
-    // ৬ ডিজিটের র‍্যান্ডম কোড তৈরি
     const otpCode = Math.floor(100000 + Math.random() * 900000);
-    const expires = new Date(Date.now() + 10 * 60000); // ১০ মিনিট মেয়াদ
+    const expires = new Date(Date.now() + 10 * 60000); 
 
     const data = await prisma.user.update({
         where: { email },
@@ -121,7 +107,6 @@ const sendResetCode = async (email: string) => {
             resetCodeExpires: expires,
         },
     });
-    // ইমেইল পাঠানো
     const emailRes = await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: email,
@@ -148,11 +133,8 @@ const verifyCodeAndResetPassword = async (email: string, code: number, newPasswo
 
     if (!user) throw new AppError("Invalid or expired code", 400);
 
-    // ২. নতুন পাসওয়ার্ড হ্যাশ করা
     const hashedPassword = await hashPassword(newPassword);
 
-    // ৩. Better Auth-এর পাসওয়ার্ড আপডেট করা (Prisma দিয়ে)
-    // Better Auth এর পাসওয়ার্ড সাধারণত 'account' টেবিলে থাকে
     const result = await prisma.account.updateMany({
         where: {
             userId: user.id,

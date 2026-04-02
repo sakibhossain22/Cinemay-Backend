@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { historyService } from "./history.service";
 
-// ১. হিস্ট্রি সেভ বা আপডেট করা
 const trackView = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -29,7 +28,6 @@ const trackView = async (req: Request, res: Response) => {
     }
 };
 
-// ২. ইউজারের হিস্ট্রি গেট করা
 const getHistory = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -57,7 +55,6 @@ const getHistory = async (req: Request, res: Response) => {
     }
 };
 
-// ৩. সব হিস্ট্রি ডিলিট করা
 const clearHistory = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;

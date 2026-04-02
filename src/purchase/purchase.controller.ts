@@ -101,7 +101,6 @@ const startPurchase = async (req: Request, res: Response) => {
         const price = type === "BUY" ? movie.buyPrice : movie.rentPrice;
         if (!price || price <= 0) return res.status(400).json({ message: "Invalid price" });
 
-        // 1. Create Stripe Payment Intent
         const paymentIntent = await stripeService.createPaymentIntent(price);
 
         const newPayment = await prisma.payment.create({
@@ -135,7 +134,6 @@ const confirmPurchase = async (req: Request, res: Response) => {
         const { movieId, type, paymentIntentId } = req.body;
         const userId = req.user?.id;
 
-        // In production: Verify paymentIntentId with Stripe before creating record
         const purchase = await purchaseService.createPurchase(userId!, movieId, type, paymentIntentId);
 
         res.status(201).json({
