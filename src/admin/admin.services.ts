@@ -364,14 +364,13 @@ const getAdminDashboardStats = async () => {
             prisma.watchlist.count(),
 
             prisma.payment.aggregate({
-                where: { status: 'SUCCESS', createdAt: { gte: firstDayOfMonth } },
+                where: { status: 'SUCCESS' },
                 _sum: { amount: true }
             }),
 
             prisma.payment.aggregate({
                 where: {
                     status: 'SUCCESS',
-                    createdAt: { gte: firstDayOfLastMonth, lt: firstDayOfMonth }
                 },
                 _sum: { amount: true }
             }),
