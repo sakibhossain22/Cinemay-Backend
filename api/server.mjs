@@ -158,16 +158,10 @@ var init_auth = __esm({
       emailAndPassword: {
         enabled: true
       },
-      // advanced: {
-      //     cookiePrefix: "better-auth",
-      //     useSecureCookies: false,
-      //     crossSiteAndSafeCookie: true,
-      // },
       advanced: {
         cookies: {
           session_token: {
             name: "better-auth.session_token",
-            // Force this exact name
             attributes: {
               httpOnly: true,
               secure: true,
@@ -177,7 +171,6 @@ var init_auth = __esm({
           },
           state: {
             name: "better-auth.state_token",
-            // Force this exact name
             attributes: {
               httpOnly: true,
               secure: true,
@@ -246,7 +239,6 @@ var init_stripe_service = __esm({
     createPaymentIntent = async (amount, currency = "usd") => {
       return await stripe.paymentIntents.create({
         amount: Math.round(amount * 100),
-        // Stripe takes amount in cents
         currency,
         payment_method_types: ["card"]
       });
@@ -790,9 +782,18 @@ var init_review_services = __esm({
     "use strict";
     init_AppError();
     init_prisma();
+    init_enums();
     addReview = async (reviewData, userId) => {
       try {
         const { movieId, rating, content, hasSpoiler } = reviewData;
+        const findUser = await prisma.user.findUnique({
+          where: {
+            id: userId
+          }
+        });
+        if (findUser?.status === UserStatus.BANNED) {
+          throw new AppError("Banned User Can't add comment");
+        }
         const result = await prisma.review.create({
           data: {
             movieId,
@@ -907,7 +908,8 @@ var init_review_services = __esm({
                 genre: true,
                 releaseYear: true,
                 cast: true,
-                type: true
+                type: true,
+                customid: true
               }
             }
           }
@@ -1237,7 +1239,6 @@ var init_media_services = __esm({
             skip,
             take,
             orderBy,
-            // এখানে ডাইনামিক সর্টিং কাজ করবে
             include: { categories: true, reviews: true }
           }),
           prisma.movie.count({ where: whereCondition })
@@ -1277,7 +1278,6 @@ var init_media_services = __esm({
         return await prisma.movie.findMany({
           where: {
             type: MediaType.SERIES,
-            // আপনার এনুম অনুযায়ী TV_SHOW বা SERIES চেক করুন
             ...categoryName && {
               categories: { some: { name: { contains: categoryName, mode: "insensitive" } } }
             }
@@ -1531,7 +1531,6 @@ var init_admin_services = __esm({
             title: item.title,
             customid: item.customid,
             type: item.type,
-            // 'MOVIE' or 'SERIES'
             synopsis: item.synopsis,
             posterUrl: item.posterUrl,
             genre: item.genre,
@@ -1546,7 +1545,6 @@ var init_admin_services = __esm({
             buyPrice: item.buyPrice,
             rentPrice: item.rentPrice,
             rentDuration: item.rentDuration,
-            // ক্যাটাগরি কানেক্ট করার লজিক
             categories: {
               connect: item.categories?.map((catName) => ({ name: catName })) || []
             }
@@ -1580,12 +1578,10 @@ var init_admin_services = __esm({
           title,
           customid,
           type,
-          // MOVIE অথবা SERIES
           synopsis: data.overview,
           posterUrl: data.poster_path ? `https://image.tmdb.org/t/p/w600_and_h900_face${data.poster_path}` : null,
           releaseYear: year,
           genre: data.genres?.map((g) => g.name).slice(0, 3) || [],
-          // Series এর ক্ষেত্রে সাধারণত 'Created By' থাকে, Movie এর ক্ষেত্রে 'Director'
           director: type === "SERIES" ? data.created_by?.[0]?.name || "N/A" : data.credits?.crew?.find((c) => c.job === "Director")?.name || "Unknown",
           cast: data.credits?.cast?.slice(0, 8).map((c) => c.name) || [],
           ratingAverage: data.vote_average ? Number(data.vote_average.toFixed(1)) : 0
@@ -1722,7 +1718,7 @@ var init_admin_services = __esm({
         prisma.review.findMany({
           include: {
             user: { select: { name: true, image: true } },
-            movie: { select: { title: true } }
+            movie: { select: { title: true, customid: true } }
           },
           orderBy: { createdAt: "desc" }
         }),
@@ -1761,7 +1757,6 @@ var init_admin_services = __esm({
       const [comments, totalComments] = await Promise.all([
         prisma.comment.findMany({
           where: { parentId: null },
-          // শুধু মেইন কমেন্টগুলো আনবে (Top-level)
           include: {
             user: { select: { name: true, image: true } },
             review: { include: { movie: { select: { title: true } } } },
@@ -1833,27 +1828,22 @@ var init_admin_services = __esm({
           deviceStats,
           recentPayments
         ] = await prisma.$transaction([
-          // বেসিক কাউন্টস
           prisma.user.count(),
           prisma.movie.count(),
           prisma.review.count(),
           prisma.comment.count(),
           prisma.purchase.count(),
           prisma.watchlist.count(),
-          // বর্তমান মাসের রেভিনিউ
           prisma.payment.aggregate({
-            where: { status: "SUCCESS", createdAt: { gte: firstDayOfMonth } },
+            where: { status: "SUCCESS" },
             _sum: { amount: true }
           }),
-          // গত মাসের রেভিনিউ
           prisma.payment.aggregate({
             where: {
-              status: "SUCCESS",
-              createdAt: { gte: firstDayOfLastMonth, lt: firstDayOfMonth }
+              status: "SUCCESS"
             },
             _sum: { amount: true }
           }),
-          // কন্টেন্ট ডিস্ট্রিবিউশন (Fix: _all এর বদলে নির্দিষ্ট ফিল্ড কাউন্ট)
           prisma.movie.groupBy({
             by: ["type"],
             _count: {
@@ -1861,7 +1851,6 @@ var init_admin_services = __esm({
             },
             orderBy: { type: "asc" }
           }),
-          // Top 5 Most Profitable Movies (Fix: _all এর বদলে movieId কাউন্ট)
           prisma.purchase.groupBy({
             by: ["movieId"],
             _sum: { amount: true },
@@ -1871,14 +1860,12 @@ var init_admin_services = __esm({
             orderBy: { _sum: { amount: "desc" } },
             take: 5
           }),
-          // একটিভ রেন্টাল কাউন্ট
           prisma.purchase.count({
             where: {
               type: "RENT",
               expiresAt: { gte: now }
             }
           }),
-          // ডিভাইস স্ট্যাটস (userAgent এর ওপর ভিত্তি করে)
           prisma.session.groupBy({
             by: ["userAgent"],
             _count: {
@@ -1887,7 +1874,6 @@ var init_admin_services = __esm({
             take: 5,
             orderBy: { _count: { userAgent: "desc" } }
           }),
-          // রিসেন্ট ৫টি পেমেন্ট অ্যাক্টিভিটি
           prisma.payment.findMany({
             take: 5,
             orderBy: { createdAt: "desc" },
@@ -2662,7 +2648,6 @@ var init_auth_services = __esm({
         const result = await auth.api.signInSocial({
           body: {
             provider: "google"
-            // callbackURL: "http://localhost:3000/dashboard" // অপশনাল: লগইন শেষে কোথায় যাবে
           }
         });
         let accessTokenGenerated = null;
@@ -2926,12 +2911,10 @@ var init_comment_services = __esm({
             userId: data.userId,
             reviewId: data.reviewId,
             parentId: data.parentId || null
-            // যদি রিপ্লাই হয় তবে parentId থাকবে
           },
           include: {
             user: {
               select: { name: true, image: true }
-              // ইউজারের নাম ও ছবিসহ রিটার্ন করবে
             }
           }
         });
@@ -2945,7 +2928,6 @@ var init_comment_services = __esm({
         where: {
           reviewId,
           parentId: null
-          // শুধু মেইন কমেন্টগুলো আগে আনবে
         },
         include: {
           user: { select: { name: true, image: true } },
@@ -3132,7 +3114,6 @@ var init_purchase_services = __esm({
           type,
           amount: amount || 0,
           expiresAt
-          // explicit mapping
         },
         include: {
           movie: true,
