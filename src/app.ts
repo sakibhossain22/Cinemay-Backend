@@ -31,7 +31,7 @@ app.use(cors({
 // Api
 
 
-app.all("/api/auth/*slat", toNodeHandler(auth));
+app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use("/api/media", mediaRoutes);
 app.use("/api/review", reviewRoutes);
