@@ -14,6 +14,7 @@ import cookieParser from 'cookie-parser';
 import { commentRoutes } from './comment/comment.routes';
 import { purchaseRoutes } from './purchase/purchase.routes';
 import { HistoryRoutes } from './history/history.routes';
+import { aiRoutes } from './ai/ai.route';
 
 
 
@@ -43,6 +44,7 @@ app.use("/api/purchase", purchaseRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/history", HistoryRoutes);
 app.use("/api/authentication", authRoutes);
+app.use("/api/ai", aiRoutes);
 
 
 
