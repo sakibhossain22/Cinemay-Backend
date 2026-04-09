@@ -9,8 +9,8 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  trustedOrigins: [process.env.APP_URL || "", "http://localhost:5000"],
-  baseURL: process.env.APP_URL || "",
+  trustedOrigins: [process.env.APP_URL || "", process.env.BACKEND_URL || "http://localhost:5000"],
+  baseURL:process.env.APP_URL,
   emailAndPassword: {
     enabled: true,
   },
@@ -53,6 +53,7 @@ export const auth = betterAuth({
       prompt: "select_account consent",
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      accessType : "offline",
     },
     github :{
       clientId: process.env.GITHUB_CLIENT_ID as string,

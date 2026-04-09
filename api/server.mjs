@@ -153,8 +153,8 @@ var init_auth = __esm({
       database: prismaAdapter(prisma, {
         provider: "postgresql"
       }),
-      trustedOrigins: [process.env.APP_URL || "", "http://localhost:5000"],
-      baseURL: process.env.APP_URL || "",
+      trustedOrigins: [process.env.APP_URL || "", process.env.BACKEND_URL || "http://localhost:5000"],
+      baseURL: process.env.APP_URL,
       emailAndPassword: {
         enabled: true
       },
@@ -194,7 +194,12 @@ var init_auth = __esm({
         google: {
           prompt: "select_account consent",
           clientId: process.env.GOOGLE_CLIENT_ID,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          accessType: "offline"
+        },
+        github: {
+          clientId: process.env.GITHUB_CLIENT_ID,
+          clientSecret: process.env.GITHUB_CLIENT_SECRET
         }
       },
       plugins: [oAuthProxy()]
@@ -2889,6 +2894,7 @@ var init_auth_routes = __esm({
     router7 = Router7();
     router7.post("/register", authController.register);
     router7.post("/login", authController.login);
+    router7.post("/google-login", authController.googleLogin);
     router7.post("/forgot-password", authController.forgotPassword);
     router7.post("/reset-password", authController.resetPassword);
     router7.post("/logout", checkAuth_default(Role.ADMIN, Role.USER), authController.logout);
@@ -3505,6 +3511,250 @@ var init_history_routes = __esm({
   }
 });
 
+// src/ai/ai.service.ts
+var generateAIResponse, chatWithAIOpenRouterService;
+var init_ai_service = __esm({
+  "src/ai/ai.service.ts"() {
+    "use strict";
+    init_prisma();
+    generateAIResponse = async (message) => {
+      const movies = await prisma.movie.findMany({
+        select: {
+          title: true,
+          genre: true,
+          customid: true,
+          categories: {
+            select: {
+              name: true
+            }
+          },
+          buyPrice: true,
+          rentPrice: true
+        }
+      });
+      if (!movies || movies.length === 0) {
+        throw new Error("No movies found in the database");
+      }
+      const movieDataString = movies.map((movie) => {
+        const categoryNames = movie.categories.map((cat) => cat.name).join(", ");
+        return `Title: ${movie.title}
+                - Genre: ${movie.genre}
+                - Categories: ${categoryNames}
+                - Buy Price: ${movie.buyPrice} BDT
+                - Rent Price: ${movie.rentPrice} BDT
+                - ID: ${movie.customid}`;
+      }).join("\n\n---\n\n");
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.AI_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://cinemay.vercel.app",
+          // Optional: OpenRouter likes to know the source
+          "X-Title": "Cinemay AI Assistant"
+          // Optional
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            {
+              role: "system",
+              content: `
+### ROLE
+You are the Cinemay AI Assistant, a high-performance, startup-style movie concierge. Your goal is to help users discover movies, understand pricing, and navigate the Cinemay platform with precision.
+
+### KNOWLEDGE BASE (CONTEXT)
+- **Current Movie Database**: 
+${movieDataString}
+
+- **URL Structure**: For any movie specific page, you MUST use this exact pattern: /movies/details/[customid] 
+(Example: /movies/details/loki-2021)
+
+### CAPABILITIES
+1. **Intelligent Search**: Match user queries with the titles, genres, and categories provided in the database.
+2. **Deep Linking**: Always provide the relative path (/movies/details/:customid) whenever you mention a specific movie.
+3. **Plan Guidance**: Recommend plans based on quality (720p vs 4K) and ad-free experience.
+
+### PRICING & PLANS
+- **FREE**: 720p Quality, Contains Ads, 1 Device ($0).
+- **MONTHLY**: 4K Streaming, Ad-Free, 2 Devices ($19 one-time).
+- **YEARLY**: Everything in Monthly, Family Sharing, 4 Devices ($1999 one-time).
+
+### BEHAVIOR RULES
+- **No Hallucination**: If a movie is NOT in the provided database, do not pretend we have it. Instead, suggest the closest match from the list.
+- **Link Detection**: Ensure links like /movies/details/id are on their own line or clearly separated so the frontend can render them as buttons.
+- **Tone**: Professional, startup-style, friendly, and helpful. Keep responses concise.
+- **Language**: Respond in English.
+
+### OUTPUT FORMAT EXAMPLE
+If a user asks for "Loki", respond like:
+"Great choice! Loki is a fan favorite. You can find it here:
+/movies/details/loki-2021
+It's available in 4K for our Monthly and Yearly subscribers!"
+`
+            },
+            {
+              role: "user",
+              content: message
+            }
+          ],
+          temperature: 0.6,
+          max_tokens: 400
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("AI ERROR:", data);
+        throw new Error(data?.error?.message || "AI API failed");
+      }
+      return data?.choices?.[0]?.message?.content || "No response";
+    };
+    chatWithAIOpenRouterService = async (message) => {
+      try {
+        const movies = await prisma.movie.findMany({
+          select: {
+            title: true,
+            genre: true,
+            customid: true,
+            categories: {
+              select: {
+                name: true
+              }
+            },
+            buyPrice: true,
+            rentPrice: true
+          }
+        });
+        if (!movies || movies.length === 0) {
+          return "I'm sorry, our movie catalog is currently empty. Please check back later!";
+        }
+        const movieDataString = movies.map((movie) => {
+          const categoryNames = movie.categories.map((cat) => cat.name).join(", ");
+          return `Title: ${movie.title} | Genre: ${movie.genre} | Categories: ${categoryNames} | Buy: ${movie.buyPrice} BDT | Rent: ${movie.rentPrice} BDT | ID: ${movie.customid}`;
+        }).join("\n");
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.OPEN_ROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://cinemay.vercel.app",
+            "X-Title": "Cinemay AI Assistant"
+          },
+          body: JSON.stringify({
+            model: "google/gemma-4-26b-a4b-it:free",
+            messages: [
+              {
+                role: "system",
+                content: `
+You are the Cinemay AI Assistant.
+
+MOVIE DATABASE:
+${movieDataString}
+
+RULES:
+- Only suggest movies from the database.
+- If not found, say we don't have it.
+- Always give link: /movies/details/[customid]
+- Keep answers short and clear.
+`
+              },
+              {
+                role: "user",
+                content: message
+              }
+            ],
+            temperature: 0.6,
+            max_tokens: 500
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          console.error("OpenRouter API Error:", data);
+          return {
+            error: data?.error?.message || "AI API failed",
+            meta: data?.error?.metadata
+          };
+        }
+        if (!data || !data.choices || !data.choices[0]) {
+          console.error("Invalid AI response:", data);
+          return "AI returned an invalid response.";
+        }
+        return data.choices[0].message?.content || "No response from AI assistant.";
+      } catch (error) {
+        console.error("AI SERVICE ERROR:", error);
+        return "AI Service is currently unavailable. Please try again later.";
+      }
+    };
+  }
+});
+
+// src/ai/ai.controller.ts
+var chatWithAI, chatWithAIOpenRouter;
+var init_ai_controller = __esm({
+  "src/ai/ai.controller.ts"() {
+    "use strict";
+    init_ai_service();
+    chatWithAI = async (req, res) => {
+      try {
+        const { message } = req.body;
+        if (!message) {
+          return res.status(400).json({
+            success: false,
+            message: "Message is required"
+          });
+        }
+        const reply = await generateAIResponse(message);
+        res.status(200).json({
+          success: true,
+          message: "AI response generated successfully",
+          data: reply
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error.message || "AI request failed"
+        });
+      }
+    };
+    chatWithAIOpenRouter = async (req, res) => {
+      try {
+        const { message } = req.body;
+        if (!message) {
+          return res.status(400).json({
+            success: false,
+            message: "Message is required"
+          });
+        }
+        const reply = await chatWithAIOpenRouterService(message);
+        res.status(200).json({
+          success: true,
+          message: "AI response generated successfully",
+          data: reply
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error.message || "AI request failed"
+        });
+      }
+    };
+  }
+});
+
+// src/ai/ai.route.ts
+import { Router as Router10 } from "express";
+var router11, aiRoutes;
+var init_ai_route = __esm({
+  "src/ai/ai.route.ts"() {
+    "use strict";
+    init_ai_controller();
+    router11 = Router10();
+    router11.post("/chat", chatWithAI);
+    router11.post("/chat-open", chatWithAIOpenRouter);
+    aiRoutes = router11;
+  }
+});
+
 // src/app.ts
 import express2 from "express";
 import { toNodeHandler } from "better-auth/node";
@@ -3526,6 +3776,7 @@ var init_app = __esm({
     init_comment_routes();
     init_purchase_routes();
     init_history_routes();
+    init_ai_route();
     app = express2();
     app.use(cookieParser());
     app.use(express2.json());
@@ -3535,7 +3786,7 @@ var init_app = __esm({
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"]
     }));
-    app.all("/api/auth/*slat", toNodeHandler(auth));
+    app.all("/api/auth/*splat", toNodeHandler(auth));
     app.use("/api/media", mediaRoutes);
     app.use("/api/review", reviewRoutes);
     app.use("/api/watchlist", watchListRoutes);
@@ -3546,6 +3797,7 @@ var init_app = __esm({
     app.use("/api/user", userRoutes);
     app.use("/api/history", HistoryRoutes);
     app.use("/api/authentication", authRoutes);
+    app.use("/api/ai", aiRoutes);
     app.get("/", async (req, res) => {
       res.send("Hello Cinemay Server");
     });
